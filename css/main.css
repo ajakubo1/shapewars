@@ -1,0 +1,10 @@
+#background, #foreground {
+  width: 640px;
+  height: 480px;
+  position: fixed;
+  z-index: 1;
+}
+
+#background {
+  z-index: 0;
+}
