@@ -1,0 +1,6 @@
+{
+  "name": "shapewars",
+  "main": "shapewars-srv.js",
+  "author": "Adam Jakubowski <ajakubo1@gmail.com>",
+  "license": "MIT"
+}

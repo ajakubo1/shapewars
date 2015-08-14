@@ -45,6 +45,10 @@
     background_ctx.drawImage(back_square, x * back_square_width, y * back_suqare_height);
   }
 
+  function drawMinion(x, y, sqx, sqy) {
+    background_ctx.drawImage(fore_minion, x + sqx * back_square_width, y + sqy * back_suqare_height);
+  }
+
   function generateBackgroundSquare() {
       back_square = document.createElement('canvas');
       back_square.width = back_square_width;
@@ -85,10 +89,6 @@
     context.globalAlpha = 0.2;
     context.fillStyle = "blue";
     context.fill();
-  }
-
-  function drawMinion(x, y, sqx, sqy) {
-    background_ctx.drawImage(fore_minion, x + sqx * back_square_width, y + sqy * back_suqare_height);
   }
 
   run();

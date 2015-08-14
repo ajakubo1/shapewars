@@ -3,6 +3,7 @@ COMPRESSOR_YUI="yuicompressor-2.4.8.jar"
 COMPRESSOR_HTML="htmlcompressor-1.5.3.jar"
 PROJECT_DIR="/home/claim/programming/gamedev/shapewars"
 BUILD_DIR="${PROJECT_DIR}/_build"
+DEPLOY_DIR="/home/claim/programming/gamedev/deploy"
 PROJECT_NAME="shapewars"
 FILE_SIZE_LIMIT=13000
 
@@ -24,23 +25,25 @@ function visualise() {
 
 #Remove mini/full folders
 rm -rf "${BUILD_DIR}/${PROJECT_NAME}"
+rm -rf "${DEPLOY_DIR}/${PROJECT_NAME}"
 rm "${BUILD_DIR}/${PROJECT_NAME}.zip"
 
 #create mini/full folders
 mkdir "${BUILD_DIR}/${PROJECT_NAME}"
 
 #generate folders
-mkdir "${BUILD_DIR}/${PROJECT_NAME}/css"
-mkdir "${BUILD_DIR}/${PROJECT_NAME}/js"
+mkdir "${BUILD_DIR}/${PROJECT_NAME}/game"
 
 #cp files which don't have to be minified
 
 #minify js and css files
-java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type css "${PROJECT_DIR}/css/main.css" > "${BUILD_DIR}/${PROJECT_NAME}/css/main.css"
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type css "${PROJECT_DIR}/game/main.css" > "${BUILD_DIR}/${PROJECT_NAME}/game/main.css"
 
-java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/js/main.js" > "${BUILD_DIR}/${PROJECT_NAME}/js/main.js"
-
-java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_HTML}" --type html "${PROJECT_DIR}/index.html" > "${BUILD_DIR}/${PROJECT_NAME}/index.html"
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/shapewars-cli.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/shapewars-cli.js"
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/shapewars-srv.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/shapewars-srv.js"
+cat "${PROJECT_DIR}/game.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game.json"
+cat "${PROJECT_DIR}/game/package.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game/package.json"
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_HTML}" --type html "${PROJECT_DIR}/game/index.html" > "${BUILD_DIR}/${PROJECT_NAME}/game/index.html"
 
 #zip minified folder
 curr_pwd=`pwd`
@@ -48,13 +51,14 @@ cd "${BUILD_DIR}"
 zip -9r "${PROJECT_NAME}.zip" "${PROJECT_NAME}"
 cd ${curr_pwd}
 
-#cp files to FULL_FOLDER
-rm -rf "${BUILD_DIR}/${PROJECT_NAME}/css/"*
-rm -rf "${BUILD_DIR}/${PROJECT_NAME}/js/"*
+cp -r "${BUILD_DIR}/${PROJECT_NAME}" "${DEPLOY_DIR}"
 
-cp -r "${PROJECT_DIR}/css/"* "${BUILD_DIR}/${PROJECT_NAME}/css/"
-cp -r "${PROJECT_DIR}/js/"* "${BUILD_DIR}/${PROJECT_NAME}/js/"
-cp ${PROJECT_DIR}/index.html "${BUILD_DIR}/${PROJECT_NAME}"
+#cp files to FULL_FOLDER
+rm "${BUILD_DIR}/${PROJECT_NAME}/game/"*
+rm "${BUILD_DIR}/${PROJECT_NAME}/game.json"
+
+cp -r "${PROJECT_DIR}/game/"* "${BUILD_DIR}/${PROJECT_NAME}/game/"
+cp -r "${PROJECT_DIR}/game.json" "${BUILD_DIR}/${PROJECT_NAME}/"
 
 size=`du -s -B1 --apparent-size "${BUILD_DIR}/${PROJECT_NAME}.zip" | awk '{print $1}'`
 
