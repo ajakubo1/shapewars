@@ -1,16 +1,25 @@
 
 (function (window) {
     "use strict";
-    var config = [[0, 1, 0], [1, 1, 1], [0, 1, 0], [1, 1, 0]],
+    var config = [[0, 1, 0, 0, 1], [1, 1, 1, 1, 1], [0, 1, 0, 0, 1], [1, 1, 1, 1, 0], [1, 0, 1, 1, 1], [1, 0, 1, 1, 1]],
         foreground = document.getElementById('foreground'),
         background = document.getElementById('background'),
         foreground_ctx = foreground.getContext('2d'),
         background_ctx = background.getContext('2d'),
         width = 680,
         height = 480,
-        width_unit,
-        height_unit,
+        x_max,
+        x_limit,
+        current_x = 0,
+        size_x = 4,
+        y_max,
+        y_limit,
+        current_y = 0,
+        size_y = 3,
+        step_x = 32,
+        step_y = 30,
         scale,
+
         tickLength = 16.666666666666,
         windowPerformance = window.performance,
         frameEngine = window.requestAnimationFrame,
@@ -18,9 +27,17 @@
         mathFloor = Math.floor,
 
         //Background settings
-        back_suqare_height = 160,
-        back_square_width = 170,
-        back_suqare_space = 5,
+        back_square_height = 150,
+        back_square_width = 160,
+        zoom = 0,
+        zoom_limit_in = 0,
+        zoom_limit_out = 1,
+        offset_x,
+        offset_y,
+        limit_x_left,
+        limit_x_right,
+        limit_y_top,
+        limit_y_bottom,
         back_square,
         //Foreground settings
         fore_minion,
@@ -53,13 +70,18 @@
     }
 
     function drawBackgroundSquare(x, y) {
-        background_ctx.drawImage(back_square, x * back_square_width, y * back_suqare_height);
+        var whole_x = x * back_square_width + offset_x - current_x,
+            whole_y = y * back_square_height + offset_y - current_y;
+
+        if (whole_x >= limit_x_left && whole_x <= limit_x_right && whole_y >= limit_y_top  && whole_y <= limit_y_bottom) {
+            background_ctx.drawImage(back_square, whole_x, whole_y);
+        }
     }
 
     function drawBackground() {
         var i, j;
-        for (i = 0; i < width_unit; i += 1) {
-            for (j = 0; j < height_unit; j += 1) {
+        for (i = 0; i < x_max; i += 1) {
+            for (j = 0; j < y_max; j += 1) {
                 if (config[i][j] === 1) {
                     drawBackgroundSquare(i, j);
                 }
@@ -67,8 +89,13 @@
         }
     }
 
+    function redrawBackground() {
+        background_ctx.clearRect(0, 0, width, height);
+        drawBackground();
+    }
+
     function drawMinion(x, y, sqx, sqy) {
-        background_ctx.drawImage(fore_minion, x + sqx * back_square_width, y + sqy * back_suqare_height);
+        background_ctx.drawImage(fore_minion, x + sqx * back_square_width, y + sqy * back_square_height);
     }
 
     function drawRect(context, x, y, width, height, stroke, fill, shadow) {
@@ -82,12 +109,13 @@
         return context;
     }
 
+    //Generation functions
     function generateBackgroundSquare() {
         back_square = document.createElement(s_canvas);
         back_square[s_width] = back_square_width;
-        back_square[s_height] = back_suqare_height;
+        back_square[s_height] = back_square_height;
         var context = back_square.getContext('2d');
-        context = drawRect(context, 2, 2, back_square_width - 4, back_suqare_height - 4, "Orange", "Gold");
+        context = drawRect(context, 2, 2, back_square_width - 4, back_square_height - 4, "Orange", "Gold");
         context.fill();
     }
 
@@ -108,11 +136,12 @@
         generateMinion();
     }
 
+    //Event listeners
     function scaleToFit() {
         var windowWidth = window.innerWidth,
             windowHeight = window.innerHeight,
-            scaleX = windowWidth / width,
-            scaleY = windowHeight / height,
+            scaleX = windowWidth / width - 0.02,
+            scaleY = windowHeight / height - 0.02,
             left,
             top;
         scale = Math.min(scaleX, scaleY);
@@ -134,22 +163,102 @@
         foreground[s_style].left = left;
     }
 
-    function run() {
+    function recountLimits() {
+        offset_x = (width - size_x * back_square_width) / 2;
+        offset_y = (height - size_y * back_square_height) / 2;
+        x_limit = (x_max - size_x + 1) * back_square_width;
+        y_limit = (y_max - size_y + 1) * back_square_height;
+        limit_x_left = -1 * back_square_width;
+        limit_x_right = size_x * back_square_width + offset_x;
+        limit_y_top = -1 * back_square_height;
+        limit_y_bottom = size_y * back_square_height + offset_y;
+        generate();
+        if (current_x > x_limit) {
+            current_x = x_limit;
+        } else if (current_x < limit_x_left) {
+            current_x = limit_x_left;
+        }
+        if (current_y < limit_y_top) {
+            current_y = limit_y_top;
+        } else if (current_y > y_limit) {
+            current_y = y_limit;
+        }
+    }
+
+    function checkKey(e) {
+        e = e || window.event;
+        var code = e.keyCode;
+
+        if (code === 38 || code === 87) {
+            current_y -= step_y;
+            if (current_y < limit_y_top) {
+                current_y = limit_y_top;
+            }
+            redrawBackground();
+        } else if (code === 40 || code === 83) {
+            current_y += step_y;
+            if (current_y > y_limit) {
+                current_y = y_limit;
+            }
+            redrawBackground();
+        } else if (code === 37 || code === 65) {
+            current_x -= step_x;
+            if (current_x < limit_x_left) {
+                current_x = limit_x_left;
+            }
+            redrawBackground();
+        } else if (code === 39 || code === 68) {
+            current_x += step_x;
+            if (current_x > x_limit) {
+                current_x = x_limit;
+            }
+            redrawBackground();
+        } else if (code === 107) {
+            if (zoom > zoom_limit_in) {
+                zoom -= 1;
+                back_square_width *= 2;
+                back_square_height *= 2;
+                size_x /= 2;
+                size_y /= 2;
+                current_x *= 2;
+                current_y *= 2;
+                recountLimits();
+                redrawBackground();
+            }
+        } else if (code === 109) {
+            if (zoom < zoom_limit_out) {
+                zoom += 1;
+                back_square_width /= 2;
+                back_square_height /= 2;
+                size_x *= 2;
+                size_y *= 2;
+                current_x /= 2;
+                current_y /= 2;
+                recountLimits();
+                redrawBackground();
+            }
+        }
+    }
+
+    function startGame() {
         foreground[s_width] = width;
         foreground[s_height] = height;
         background[s_width] = width;
         background[s_height] = height;
-        width_unit = config.length;
-        height_unit = config[0].length;
+        x_max = config.length;
+        y_max = config[0].length;
+
+        recountLimits();
         scaleToFit();
         window.addEventListener('resize', scaleToFit);
-        generate();
+        window.addEventListener('keydown', checkKey);
         drawBackground();
         drawMinion(20, 20, 1, 1);
 
         updateTime = windowPerformance.now();
+
         //frameEngine(frame);
     }
 
-    run();
+    startGame();
 }(window));

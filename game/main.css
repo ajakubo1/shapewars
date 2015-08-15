@@ -1,5 +1,5 @@
 #background, #foreground {
-  width: 640px;
+  width: 680px;
   height: 480px;
   position: fixed;
   z-index: 1;
@@ -7,4 +7,10 @@
 
 #background {
   z-index: 0;
+  background-color: bisque;
+  border: 3px solid red;
+}
+
+body {
+  background-color: black;
 }
