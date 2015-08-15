@@ -1,11 +1,9 @@
-#background, #foreground {
-  width: 680px;
-  height: 480px;
+#b, #f {
   position: fixed;
   z-index: 1;
 }
 
-#background {
+#b {
   z-index: 0;
   background-color: bisque;
   border: 3px solid red;

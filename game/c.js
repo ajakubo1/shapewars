@@ -1,9 +1,9 @@
 
-(function (window) {
+(function (document, window) {
     "use strict";
     var config = [[0, 1, 0, 0, 1], [1, 1, 1, 1, 1], [0, 1, 0, 0, 1], [1, 1, 1, 1, 0], [1, 0, 1, 1, 1], [1, 0, 1, 1, 1]],
-        foreground = document.getElementById('foreground'),
-        background = document.getElementById('background'),
+        foreground = document.getElementById('f'),
+        background = document.getElementById('b'),
         foreground_ctx = foreground.getContext('2d'),
         background_ctx = background.getContext('2d'),
         width = 680,
@@ -21,10 +21,7 @@
         scale,
 
         tickLength = 16.666666666666,
-        windowPerformance = window.performance,
-        frameEngine = window.requestAnimationFrame,
         updateTime,
-        mathFloor = Math.floor,
 
         //Background settings
         back_square_height = 150,
@@ -43,10 +40,7 @@
         fore_minion,
         fore_minion_size = 32,
 
-        s_width = 'width',
-        s_height = 'height',
-        s_canvas = 'canvas',
-        s_style = 'style';
+        s_canvas = 'canvas';
 
     function update(count) {
         while (count) {
@@ -61,8 +55,8 @@
     }
 
     function frame(frameTime) {
-        frameEngine(frame);
-        var tickCount = mathFloor((frameTime - updateTime) / tickLength);
+        window.requestAnimationFrame(frame);
+        var tickCount = Math.floor((frameTime - updateTime) / tickLength);
         if (tickCount > 0) {
             update(tickCount);
             render();
@@ -112,8 +106,8 @@
     //Generation functions
     function generateBackgroundSquare() {
         back_square = document.createElement(s_canvas);
-        back_square[s_width] = back_square_width;
-        back_square[s_height] = back_square_height;
+        back_square.width = back_square_width;
+        back_square.height = back_square_height;
         var context = back_square.getContext('2d');
         context = drawRect(context, 2, 2, back_square_width - 4, back_square_height - 4, "Orange", "Gold");
         context.fill();
@@ -121,8 +115,8 @@
 
     function generateMinion() {
         fore_minion = document.createElement(s_canvas);
-        fore_minion[s_width] = fore_minion_size;
-        fore_minion[s_height] = fore_minion_size;
+        fore_minion.width = fore_minion_size;
+        fore_minion.height = fore_minion_size;
         var context = fore_minion.getContext('2d');
         context = drawRect(context, fore_minion_size / 4, fore_minion_size / 4, fore_minion_size / 2, fore_minion_size / 2, "blue", "blue");
         context.shadowBlur = 5;
@@ -152,15 +146,15 @@
             left = ((windowWidth - width * scale) / 2) + "px";
             top = "0px";
         }
-        background[s_style].transformOrigin = "0 0"; //scale from top left
-        background[s_style].transform = "scale(" + scale + ")";
-        foreground[s_style].transformOrigin = "0 0"; //scale from top left
-        foreground[s_style].transform = "scale(" + scale + ")";
+        background.style.transformOrigin = "0 0"; //scale from top left
+        background.style.transform = "scale(" + scale + ")";
+        foreground.style.transformOrigin = "0 0"; //scale from top left
+        foreground.style.transform = "scale(" + scale + ")";
 
-        background[s_style].top = top;
-        foreground[s_style].top = top;
-        background[s_style].left = left;
-        foreground[s_style].left = left;
+        background.style.top = top;
+        foreground.style.top = top;
+        background.style.left = left;
+        foreground.style.left = left;
     }
 
     function recountLimits() {
@@ -241,10 +235,10 @@
     }
 
     function startGame() {
-        foreground[s_width] = width;
-        foreground[s_height] = height;
-        background[s_width] = width;
-        background[s_height] = height;
+        foreground.width = width;
+        foreground.height = height;
+        background.width = width;
+        background.height = height;
         x_max = config.length;
         y_max = config[0].length;
 
@@ -255,10 +249,10 @@
         drawBackground();
         drawMinion(20, 20, 1, 1);
 
-        updateTime = windowPerformance.now();
+        updateTime = window.performance.now();
 
-        //frameEngine(frame);
+        //window.requestAnimationFrame(frame);
     }
 
     startGame();
-}(window));
+}(document, window));

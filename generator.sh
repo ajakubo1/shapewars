@@ -37,10 +37,10 @@ mkdir "${BUILD_DIR}/${PROJECT_NAME}/game"
 #cp files which don't have to be minified
 
 #minify js and css files
-java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type css "${PROJECT_DIR}/game/main.css" > "${BUILD_DIR}/${PROJECT_NAME}/game/main.css"
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type css "${PROJECT_DIR}/game/s.css" > "${BUILD_DIR}/${PROJECT_NAME}/game/s.css"
 
-java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/shapewars-cli.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/shapewars-cli.js"
-java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/shapewars-srv.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/shapewars-srv.js"
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/c.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/c.js"
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/s.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/s.js"
 cat "${PROJECT_DIR}/game.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game.json"
 cat "${PROJECT_DIR}/game/package.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game/package.json"
 java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_HTML}" --type html "${PROJECT_DIR}/game/index.html" > "${BUILD_DIR}/${PROJECT_NAME}/game/index.html"
