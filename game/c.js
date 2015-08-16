@@ -109,7 +109,7 @@
 
         takeover_progress = 0;
 
-    function drawBackgroundSquare(x, y, type) {
+    function render_backgroundSquare(x, y, type) {
         var whole_x = x * back_square_width + offset_x - current_x,
             whole_y = y * back_square_height + offset_y - current_y;
 
@@ -118,12 +118,12 @@
         }
     }
 
-    function drawBackground() {
+    function render_background() {
         var i, j;
         for (i = 0; i < x_max; i += 1) {
             for (j = 0; j < y_max; j += 1) {
                 if (config[i][j] !== 8) {
-                    drawBackgroundSquare(i, j, config[i][j]);
+                    render_backgroundSquare(i, j, config[i][j]);
                 }
             }
         }
@@ -131,11 +131,11 @@
 
     function redrawBackground() {
         background_ctx.clearRect(0, 0, width, height);
-        drawBackground();
+        render_background();
     }
 
     function conquer(player, x, y) {
-        config[x][y] = current;
+        config[x][y] = player;
         owned[player].push([x, y, 0, 0, 0]);
     }
 
@@ -151,6 +151,27 @@
         if (len !== progressing[player].length) {
             removeDeleted(player);
         }
+    }
+    
+    function takeTakeoverSquare(square, player, init_i, limit_i, adjustment_i,
+                                init_j, limit_j, adjustmet_j) {
+        var i, j, took;
+        
+        //=== 1 -> 0, w, 0; 0, h, 0.
+        for (i = init_i; i < limit_i; i += 1) {
+            for (j = init_j; j < limit_j; j += 1) {
+                if (square[i][j] === 8) {
+                    square[i][j] = player;
+                    took = false;
+                    break;
+                }
+            }
+            
+            if (!took) {
+                break;
+            }
+        }
+        return took;
     }
 
     function takeoverStep() {
@@ -223,6 +244,12 @@
                             }
                         }
                         
+                        if(took) {
+                            minion.order = 0;
+                            //Minion does not work anymore
+                            //TODO check if the whole square is ready
+                        }
+                        
                     }
                 }
 
@@ -230,6 +257,11 @@
                     delete takeoverStatus[process.id];
                     conquer(i, process.x, process.y);
                     //minions can work now :)
+                    
+                    /*for(k = 0; k < minions[i].length; k += 1) {
+                        if()
+                    }*/
+                    
                     process.deleted = true;
                     deleted = true;
                     redrawBackground();
@@ -279,17 +311,17 @@
         }
     }
 
-    function drawTakeover(player, x, y, sqx, sqy) {
+    function render_takeover(player, x, y, sqx, sqy) {
         background_ctx.drawImage(takeover_square[player], x + sqx * back_square_width + offset_x - current_x,
                                  y + sqy * back_square_height + offset_y - current_y);
     }
 
-    function drawProgress(x, y, progress) {
+    function render_takeoverProgress(x, y, progress) {
         var i, j;
         for (i = 0; i < progress_width; i += 1) {
             for (j = 0; j < progress_height; j += 1) {
                 if (progress[i][j] !== 8) {
-                    drawTakeover(progress[i][j], i * fore_minion_width, j * fore_minion_height, x, y);
+                    render_takeover(progress[i][j], i * fore_minion_width, j * fore_minion_height, x, y);
                 }
             }
         }
@@ -304,7 +336,7 @@
         for (i = 0; i < progressing.length; i += 1) {
             for (j = 0; j < progressing[i].length; j += 1) {
                 progress = progressing[i][j];
-                drawProgress(progress.x, progress.y, takeoverStatus[progress.id]);
+                render_takeoverProgress(progress.x, progress.y, takeoverStatus[progress.id]);
             }
         }
         //Redraw minions
@@ -340,11 +372,11 @@
         }
     }
 
-    function drawMinion(x, y, sqx, sqy) {
+    function render_minion(x, y, sqx, sqy) {
         foreground_ctx.drawImage(fore_minion, x + sqx * back_square_width + offset_x, y + sqy * back_square_height + offset_y);
     }
 
-    function drawRect(context, x, y, width, height, stroke, fill, shadow) {
+    function render_rect(context, x, y, width, height, stroke, fill, shadow) {
         context.beginPath();
         context.rect(x, y, width, height);
         context.closePath();
@@ -362,7 +394,7 @@
         square.width = back_square_width;
         square.height = back_square_height;
         context = square.getContext('2d');
-        context = drawRect(context, 2, 2, back_square_width - 4, back_square_height - 4, border, fill);
+        context = render_rect(context, 2, 2, back_square_width - 4, back_square_height - 4, border, fill);
         context.fill();
         return square;
     }
@@ -373,7 +405,7 @@
         square.width = fore_minion_width;
         square.height = fore_minion_height;
         context = square.getContext('2d');
-        context = drawRect(context, 0, 0, fore_minion_width, fore_minion_height, border, fill);
+        context = render_rect(context, 0, 0, fore_minion_width, fore_minion_height, border, fill);
         context.fill();
         return square;
     }
@@ -383,7 +415,7 @@
         fore_minion.width = fore_minion_width;
         fore_minion.height = fore_minion_height;
         var context = fore_minion.getContext('2d');
-        context = drawRect(context, fore_minion_width / 4, fore_minion_height / 4, fore_minion_width / 2, fore_minion_height / 2, "white", "blue");
+        context = render_rect(context, fore_minion_width / 4, fore_minion_height / 4, fore_minion_width / 2, fore_minion_height / 2, "white", "blue");
         context.shadowBlur = 10;
         context.shadowColor = "white";
         context.globalAlpha = 1;
@@ -717,7 +749,7 @@
             window.addEventListener('keydown', listener_keydown);
             foreground.addEventListener('mousedown', listener_mousedown);
         }
-        drawBackground();
+        render_background();
 
         updateTime = window.performance.now();
 
