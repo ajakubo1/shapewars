@@ -1,14 +1,18 @@
-#b, #f {
-  position: fixed;
-  z-index: 1;
+#b, #f, #m {
+    position: fixed;
+    z-index: 2;
+}
+
+#m {
+    z-index: 1;
 }
 
 #b {
-  z-index: 0;
-  background-color: bisque;
-  border: 3px solid red;
+    z-index: 0;
+    background-color: bisque;
+    border: 3px solid red;
 }
 
 body {
-  background-color: black;
+    background-color: black;
 }

@@ -55,9 +55,12 @@
         }], []],
 
         foreground = document.getElementById('f'),
+        //TODO: Add middleground serving
+        middleground = document.getElementById('m'),
         background = document.getElementById('b'),
         foreground_ctx = foreground.getContext('2d'),
         background_ctx = background.getContext('2d'),
+        middleground_ctx = background.getContext('2d'),
         current,
         width = 680,
         height = 480,
@@ -398,34 +401,7 @@
         generateMinion();
     }
 
-    //Event listeners
-    function scaleToFit() {
-        var windowWidth = window.innerWidth,
-            windowHeight = window.innerHeight,
-            scaleX = windowWidth / width - 0.02,
-            scaleY = windowHeight / height - 0.02,
-            left,
-            top;
-        scale = Math.min(scaleX, scaleY);
-        if (scale === scaleX) {
-            left = "0px";
-            top = ((windowHeight - height * scale) / 2) + "px";
-        } else {
-            left = ((windowWidth - width * scale) / 2) + "px";
-            top = "0px";
-        }
-        background.style.transformOrigin = "0 0"; //scale from top left
-        background.style.transform = "scale(" + scale + ")";
-        foreground.style.transformOrigin = "0 0"; //scale from top left
-        foreground.style.transform = "scale(" + scale + ")";
-
-        background.style.top = top;
-        foreground.style.top = top;
-        background.style.left = left;
-        foreground.style.left = left;
-    }
-
-    function recountLimits() {
+    function generate_globals() {
         offset_x = (width - size_x * back_square_width) / 2;
         offset_y = (height - size_y * back_square_height) / 2;
         x_limit = (x_max - size_x + 1) * back_square_width;
@@ -460,55 +436,6 @@
         }
     }
 
-    function checkKey(e) {
-        e = e || window.event;
-        var code = e.keyCode,
-            moved = false;
-
-        if (code === 38 || code === 87) {
-            current_y -= step_y;
-            moved = true;
-        } else if (code === 40 || code === 83) {
-            current_y += step_y;
-            moved = true;
-        } else if (code === 37 || code === 65) {
-            current_x -= step_x;
-            moved = true;
-        } else if (code === 39 || code === 68) {
-            current_x += step_x;
-            moved = true;
-        } else if (code === 107) {
-            if (zoom > zoom_limit_in) {
-                zoom -= 1;
-                back_square_width *= 2;
-                back_square_height *= 2;
-                size_x /= 2;
-                size_y /= 2;
-                current_x *= 2;
-                current_y *= 2;
-                recountLimits();
-                redrawBackground();
-            }
-        } else if (code === 109) {
-            if (zoom < zoom_limit_out) {
-                zoom += 1;
-                back_square_width /= 2;
-                back_square_height /= 2;
-                size_x *= 2;
-                size_y *= 2;
-                current_x /= 2;
-                current_y /= 2;
-                recountLimits();
-                redrawBackground();
-            }
-        }
-
-        if (moved) {
-            guardBorders();
-            redrawBackground();
-        }
-    }
-
     function moveScreen(x, y) {
         if (!moved) {
             moved = true;
@@ -522,23 +449,9 @@
         guardBorders();
         redrawBackground();
     }
-
-    function mousemoveListener(e) {
-        moveScreen(e.offsetX, e.offsetY);
-    }
-
-    function mouseoutListener(e) {
-        foreground.removeEventListener('mousemove', mousemoveListener);
-        foreground.removeEventListener('mouseout', mouseoutListener);
-    }
-
-    function mousedownListener(e) {
-        //console.info(e.pageX, e.pageY, "|", e.offsetX, e.offsetY, "|", e.screenX, e.screenY, "|", e.clientX, e.clientY);
-        foreground.addEventListener('mousemove', mousemoveListener);
-        foreground.addEventListener('mouseout', mouseoutListener);
-    }
-
-    function progressTable() {
+    
+    
+    function generate_takeoverField() {
         var i, j, toReturn = [];
         for (i = 0; i < progress_width; i += 1) {
             toReturn.push([]);
@@ -558,7 +471,15 @@
         }
     }
     
-    function orderAttack(player, x, y, range) {
+    /*********************************************************************
+     *
+     *
+     *  SECTION: ORDERS 
+     *
+     *
+     *********************************************************************/
+    
+    function order_attack(player, x, y, range) {
         var n_x, n_y, ordered_minions = [], i, owned_square;
         if (range === 0) {
             n_y = y;
@@ -600,55 +521,162 @@
             "id": x + "," + y,
             "f": range
         });
-        takeoverStatus[x + "," + y] = progressTable();
+        takeoverStatus[x + "," + y] = generate_takeoverField();
     }
     
-    function orderDefend(player, x, y) {
+    function order_defend(player, x, y) {
         //TODO defence operations
     }
     
-    function orderMinions(player, x, y) {
+    function order_decision(player, x, y) {
         if (busy[player] < owned[player].length) {
             var range = inRange(player, x, y);
             if (range !== false && (config[x][y] === 9 || (config[x][y] !== player && config[x][y] !== 8))) {
-                orderAttack(player, x, y, range);
+                order_attack(player, x, y, range);
             } else if (config[x][y] === player) {
-                orderDefend(player, x, y);
+                order_defend(player, x, y);
             }
         }
     }
 
-    function mouseupListener(e) {
-        foreground.removeEventListener('mousemove', mousemoveListener);
-        foreground.removeEventListener('mouseout', mouseoutListener);
+
+    /*********************************************************************
+     *
+     *
+     *  SECTION: LISTENERS 
+     *
+     *
+     *********************************************************************/
+    
+    function listener_resize() {
+        var windowWidth = window.innerWidth,
+            windowHeight = window.innerHeight,
+            scaleX = windowWidth / width - 0.02,
+            scaleY = windowHeight / height - 0.02,
+            left,
+            top;
+        scale = Math.min(scaleX, scaleY);
+        if (scale === scaleX) {
+            left = "0px";
+            top = ((windowHeight - height * scale) / 2) + "px";
+        } else {
+            left = ((windowWidth - width * scale) / 2) + "px";
+            top = "0px";
+        }
+        background.style.transformOrigin = "0 0"; //scale from top left
+        background.style.transform = "scale(" + scale + ")";
+        foreground.style.transformOrigin = "0 0"; //scale from top left
+        foreground.style.transform = "scale(" + scale + ")";
+
+        background.style.top = top;
+        foreground.style.top = top;
+        background.style.left = left;
+        foreground.style.left = left;
+    }
+    
+    function listener_keydown(e) {
+        e = e || window.event;
+        var code = e.keyCode,
+            moved = false;
+
+        if (code === 38 || code === 87) {
+            current_y -= step_y;
+            moved = true;
+        } else if (code === 40 || code === 83) {
+            current_y += step_y;
+            moved = true;
+        } else if (code === 37 || code === 65) {
+            current_x -= step_x;
+            moved = true;
+        } else if (code === 39 || code === 68) {
+            current_x += step_x;
+            moved = true;
+        } else if (code === 107) {
+            if (zoom > zoom_limit_in) {
+                zoom -= 1;
+                back_square_width *= 2;
+                back_square_height *= 2;
+                size_x /= 2;
+                size_y /= 2;
+                current_x *= 2;
+                current_y *= 2;
+                generate_globals();
+                redrawBackground();
+            }
+        } else if (code === 109) {
+            if (zoom < zoom_limit_out) {
+                zoom += 1;
+                back_square_width /= 2;
+                back_square_height /= 2;
+                size_x *= 2;
+                size_y *= 2;
+                current_x /= 2;
+                current_y /= 2;
+                generate_globals();
+                redrawBackground();
+            }
+        }
+
+        if (moved) {
+            guardBorders();
+            redrawBackground();
+        }
+    }
+    
+    function listener_mousemove(e) {
+        moveScreen(e.offsetX, e.offsetY);
+    }
+
+    function listener_mouseout(e) {
+        foreground.removeEventListener('mousemove', listener_mousemove);
+        foreground.removeEventListener('mouseout', listener_mouseout);
+    }
+
+    function listener_mousedown(e) {
+        //console.info(e.pageX, e.pageY, "|", e.offsetX, e.offsetY, "|", e.screenX, e.screenY, "|", e.clientX, e.clientY);
+        foreground.addEventListener('mousemove', listener_mousemove);
+        foreground.addEventListener('mouseout', listener_mouseout);
+    }
+
+    function listener_mouseup(e) {
+        foreground.removeEventListener('mousemove', listener_mousemove);
+        foreground.removeEventListener('mouseout', listener_mouseout);
         if (moved === false) {
             var x = e.offsetX + current_x - offset_x,
                 y = e.offsetY + current_y - offset_y,
                 range;
             if (x > 0 && y > 0 && x <= back_square_width * x_max && y <= back_square_height * y_max) {
-                orderMinions(current, Math.floor(x / back_square_width), Math.floor(y / back_square_height));
+                order_decision(current, Math.floor(x / back_square_width), Math.floor(y / back_square_height));
             }
         } else {
             moved = false;
         }
     }
 
-    function touchmoveListener(e) {
+    function listener_touchmove(e) {
         e.preventDefault();
         var touch = e.touches[0];
         moveScreen(touch.screenX, touch.screenY);
     }
 
-    function touchstartListener(e) {
-        foreground.addEventListener('touchmove', touchmoveListener);
+    function listener_touchstart(e) {
+        foreground.addEventListener('touchmove', listener_touchmove);
     }
 
-    function touchendListener(e) {
-        foreground.removeEventListener('touchmove', touchmoveListener);
+    function listener_touchend(e) {
+        foreground.removeEventListener('touchmove', listener_touchmove);
         moved = false;
     }
+    
+    /*********************************************************************
+     *
+     *
+     *  SECTION: MAIN 
+     *
+     *
+     *********************************************************************/
 
-    function mobileAndTabletcheck() {
+    function mobileCheck() {
         if (navigator.userAgent.match(/Android/i)
                 || navigator.userAgent.match(/webOS/i)
                 || navigator.userAgent.match(/iPhone/i)
@@ -662,7 +690,7 @@
     }
 
     function startGame() {
-        var i, minion;
+        var i;
         foreground.width = width;
         foreground.height = height;
         background.width = width;
@@ -677,18 +705,17 @@
             }
         }
 
-        recountLimits();
-        scaleToFit();
-        window.addEventListener('resize', scaleToFit);
+        generate_globals();
+        listener_resize();
+        window.addEventListener('resize', listener_resize);
+        foreground.addEventListener('mouseup', listener_mouseup);
 
-        if (mobileAndTabletcheck()) {
-            foreground.addEventListener('touchstart', touchstartListener);
-            foreground.addEventListener('touchend', touchendListener);
-            foreground.addEventListener('mouseup', mouseupListener);
+        if (mobileCheck()) {
+            foreground.addEventListener('touchstart', listener_touchstart);
+            foreground.addEventListener('touchend', listener_touchend);
         } else {
-            window.addEventListener('keydown', checkKey);
-            foreground.addEventListener('mousedown', mousedownListener);
-            foreground.addEventListener('mouseup', mouseupListener);
+            window.addEventListener('keydown', listener_keydown);
+            foreground.addEventListener('mousedown', listener_mousedown);
         }
         drawBackground();
 
