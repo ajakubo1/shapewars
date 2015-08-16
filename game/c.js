@@ -27,11 +27,30 @@
             }
         ],
 
-        owned = [[[1, 1]], [1, 5]],
+        owned = [[[1, 1, 1, 0]], [[1, 5, 0, 0]]],
 
+        /*
+        Progress has to have:
+            x, y of tiles to conquer
+            from which side conquer goes
+            list of minions who are conquering
+            id of takeover status
+        */
         progressing = [[], []],
+        takeoverStatus = {},
 
-        progressStatus = [],
+        /*
+        Minion orders:
+            0 - staying at their home square, adding their numbers to the amount of created minions
+            1 - attacking a square
+            2 - going somewhere
+        */
+
+        minions = [[{
+            "step": 0,
+            "order": 0,
+            "origin": [1, 1]
+        }], []],
 
         foreground = document.getElementById('f'),
         background = document.getElementById('b'),
@@ -85,6 +104,26 @@
 
         takeover_progress = 0;
 
+    function drawBackgroundSquare(x, y, type) {
+        var whole_x = x * back_square_width + offset_x - current_x,
+            whole_y = y * back_square_height + offset_y - current_y;
+
+        if (whole_x >= limit_x_left && whole_x <= limit_x_right && whole_y >= limit_y_top  && whole_y <= limit_y_bottom) {
+            background_ctx.drawImage(back_square[type], whole_x, whole_y);
+        }
+    }
+
+    function drawBackground() {
+        var i, j;
+        for (i = 0; i < x_max; i += 1) {
+            for (j = 0; j < y_max; j += 1) {
+                if (config[i][j] !== 8) {
+                    drawBackgroundSquare(i, j, config[i][j]);
+                }
+            }
+        }
+    }
+
     function redrawBackground() {
         background_ctx.clearRect(0, 0, width, height);
         drawBackground();
@@ -92,36 +131,91 @@
 
     function conquer(player, x, y) {
         config[x][y] = current;
-        owned[player].push([x, y]);
+        owned[player].push([x, y, 0, 0]);
+    }
+
+    function removeDeleted(player) {
+        var i, len;
+        len = progressing[player].length;
+        for (i = 0; i < len; i += 1) {
+            if (progressing[player][i].deleted !== undefined) {
+                progressing[player].splice(i, 1);
+                break;
+            }
+        }
+        if (len !== progressing[player].length) {
+            removeDeleted(player);
+        }
     }
 
     function takeoverStep() {
-        if (progressStatus.length > 0) {
-            var i, j, took = false;
-            takeover_progress += 1;
-
-            if (takeover_progress === 20) {
-                took = true;
-                takeover_progress = 0;
-                for (i = 0; i < progress_width; i += 1) {
-                    for (j = 0; j < progress_height; j += 1) {
-                        if (progressStatus[0].progress[i][j] === 8) {
-                            progressStatus[0].progress[i][j] = current;
-                            took = false;
-                            break;
+        var i, j, process, working, minion, k, took, l, m, deleted;
+        for (i = 0; i < progressing.length; i += 1) {
+            deleted = false;
+            for (j = 0; j < progressing[i].length; j += 1) {
+                took = false;
+                process = progressing[i][j];
+                working = process.m;
+                for (k = 0; k < working.length; k += 1) {
+                    minion = minions[i][working[k]];
+                    minion.step += 1;
+                    if (minion.step > 20) {
+                        minion.step = 0;
+                        took = true;
+                        //TODO: Depends on the place form where there was attack
+                        //TODO: How conflicts are resolved? :>
+                        for (l = 0; l < progress_width; l += 1) {
+                            for (m = 0; m < progress_height; m += 1) {
+                                if (takeoverStatus[process.id][l][m] === 8) {
+                                    takeoverStatus[process.id][l][m] = i;
+                                    took = false;
+                                    break;
+                                }
+                            }
+                            if (!took) {
+                                break;
+                            }
                         }
                     }
+                }
 
-                    if (!took) {
-                        break;
-                    }
+                if (took) {
+                    delete takeoverStatus[process.id];
+                    conquer(i, process.x, process.y);
+                    //minions can work now :)
+                    process.deleted = true;
+                    deleted = true;
+                    redrawBackground();
                 }
             }
 
-            if (took) {
-                took = progressStatus.shift();
-                conquer(current, took.x, took.y);
-                redrawBackground();
+            if (deleted) {
+                removeDeleted(i);
+            }
+        }
+    }
+
+    function createMinions() {
+        var i, j, land, minion;
+        for (i = 0; i < owned.length; i += 1) {
+            for (j = 0; j < owned[i].length; j += 1) {
+                land = owned[i][j];
+                if (land[2] < 3) {
+                    land[3] += 1;
+                    //TODO: add bonus from every non-wokring minion which is in the vacinity
+                    if (land[3] > 600) {
+                        land[3] = 0;
+                        land[2] += 1;
+                        minion = {
+                            "order": 0,
+                            "step": 0,
+                            "origin": [land[0], land[1]]
+                        };
+                        minions[i].push(minion);
+
+                        console.info("created minion nbr: " + land[2] + " at: " + land[0] + "," + land[1] + ". Total amount of minions: " + minions[i].length);
+                    }
+                }
             }
         }
     }
@@ -131,6 +225,8 @@
             updateTime += tickLength;
             //recount progress
             takeoverStep();
+            //create minions?
+            createMinions();
             count -= 1;
         }
     }
@@ -152,12 +248,16 @@
     }
 
     function render() {
-        var i;
+        var i, j, progress;
         //clean frontend
         foreground_ctx.clearRect(0, 0, width, height);
         //Redraw progress
-        for (i = 0; i < progressStatus.length; i += 1) {
-            drawProgress(progressStatus[i].x, progressStatus[i].y, progressStatus[i].progress);
+
+        for (i = 0; i < progressing.length; i += 1) {
+            for (j = 0; j < progressing[i].length; j += 1) {
+                progress = progressing[i][j];
+                drawProgress(progress.x, progress.y, takeoverStatus[progress.id]);
+            }
         }
         //Redraw minions
     }
@@ -180,26 +280,6 @@
         if (tickCount > 0) {
             update(tickCount);
             render();
-        }
-    }
-
-    function drawBackgroundSquare(x, y, type) {
-        var whole_x = x * back_square_width + offset_x - current_x,
-            whole_y = y * back_square_height + offset_y - current_y;
-
-        if (whole_x >= limit_x_left && whole_x <= limit_x_right && whole_y >= limit_y_top  && whole_y <= limit_y_bottom) {
-            background_ctx.drawImage(back_square[type], whole_x, whole_y);
-        }
-    }
-
-    function drawBackground() {
-        var i, j;
-        for (i = 0; i < x_max; i += 1) {
-            for (j = 0; j < y_max; j += 1) {
-                if (config[i][j] !== 8) {
-                    drawBackgroundSquare(i, j, config[i][j]);
-                }
-            }
         }
     }
 
@@ -236,7 +316,7 @@
         square.width = fore_minion_width;
         square.height = fore_minion_height;
         context = square.getContext('2d');
-        context = drawRect(context, 0, 0, fore_minion_width, fore_minion_height, border, "green");
+        context = drawRect(context, 0, 0, fore_minion_width, fore_minion_height, border, fill);
         context.fill();
         return square;
     }
@@ -404,7 +484,7 @@
         foreground.addEventListener('mouseout', mouseoutListener);
     }
 
-    function progressTable(x, y) {
+    function progressTable() {
         var i, j, toReturn = [];
         for (i = 0; i < progress_width; i += 1) {
             toReturn.push([]);
@@ -412,11 +492,7 @@
                 toReturn[i].push(8);
             }
         }
-        return {
-            "x": x,
-            "y": y,
-            "progress": toReturn
-        };
+        return toReturn;
     }
 
     function mouseupListener(e) {
@@ -430,8 +506,16 @@
                 y = Math.floor(y / back_square_height);
                 if (config[x][y] !== 8 && inRange(current, x, y)) {
                     //TODO: change this to give an order to squares
-                    progressing[current].push([0, x, y]);
-                    progressStatus.push(progressTable(x, y));
+                    //TODO: what if player clicks two times the same square? ;>
+                    //TODO: guard order - all of the troops go to specific place
+                    //TODO: add icons representing attack/defence + how many are attacking
+                    progressing[current].push({
+                        "x": x,
+                        "y": y,
+                        "m": [0],
+                        "id": x + "," + y
+                    });
+                    takeoverStatus[x + "," + y] = progressTable();
                 }
             }
         } else {
@@ -469,7 +553,7 @@
     }
 
     function startGame() {
-        var i;
+        var i, minion;
         foreground.width = width;
         foreground.height = height;
         background.width = width;
