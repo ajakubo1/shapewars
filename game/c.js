@@ -27,7 +27,8 @@
             }
         ],
 
-        owned = [[[1, 1, 1, 0]], [[1, 5, 0, 0]]],
+        owned = [[[1, 1, 1, 0, 0]], [[1, 5, 0, 0, 0]]],
+        busy = [0, 0],
 
         /*
         Progress has to have:
@@ -49,7 +50,8 @@
         minions = [[{
             "step": 0,
             "order": 0,
-            "origin": [1, 1]
+            "origin": [1, 1],
+            "position": [1, 1]
         }], []],
 
         foreground = document.getElementById('f'),
@@ -131,7 +133,7 @@
 
     function conquer(player, x, y) {
         config[x][y] = current;
-        owned[player].push([x, y, 0, 0]);
+        owned[player].push([x, y, 0, 0, 0]);
     }
 
     function removeDeleted(player) {
@@ -164,18 +166,60 @@
                         took = true;
                         //TODO: Depends on the place form where there was attack
                         //TODO: How conflicts are resolved? :>
-                        for (l = 0; l < progress_width; l += 1) {
-                            for (m = 0; m < progress_height; m += 1) {
-                                if (takeoverStatus[process.id][l][m] === 8) {
-                                    takeoverStatus[process.id][l][m] = i;
-                                    took = false;
+                        if (process.f === 1) {
+                            for (l = 0; l < progress_width; l += 1) {
+                                for (m = 0; m < progress_height; m += 1) {
+                                    if (takeoverStatus[process.id][l][m] === 8) {
+                                        takeoverStatus[process.id][l][m] = i;
+                                        took = false;
+                                        break;
+                                    }
+                                }
+                                if (!took) {
                                     break;
                                 }
                             }
-                            if (!took) {
-                                break;
+                        } else if (process.f === 0) {
+                            for (l = progress_width - 1; l >= 0; l -= 1) {
+                                for (m = progress_height - 1; m >= 0; m -= 1) {
+                                    if (takeoverStatus[process.id][l][m] === 8) {
+                                        takeoverStatus[process.id][l][m] = i;
+                                        took = false;
+                                        break;
+                                    }
+                                }
+                                if (!took) {
+                                    break;
+                                }
+                            }
+                        } else if (process.f === 2) {
+                            for (l = progress_height - 1; l >= 0; l -= 1) {
+                                for (m = progress_width - 1; m >= 0; m -= 1) {
+                                    if (takeoverStatus[process.id][m][l] === 8) {
+                                        takeoverStatus[process.id][m][l] = i;
+                                        took = false;
+                                        break;
+                                    }
+                                }
+                                if (!took) {
+                                    break;
+                                }
+                            }
+                        } else if (process.f === 3) {
+                            for (l = 0; l < progress_height; l += 1) {
+                                for (m = 0; m < progress_width; m += 1) {
+                                    if (takeoverStatus[process.id][m][l] === 8) {
+                                        takeoverStatus[process.id][m][l] = i;
+                                        took = false;
+                                        break;
+                                    }
+                                }
+                                if (!took) {
+                                    break;
+                                }
                             }
                         }
+                        
                     }
                 }
 
@@ -209,7 +253,8 @@
                         minion = {
                             "order": 0,
                             "step": 0,
-                            "origin": [land[0], land[1]]
+                            "origin": [land[0], land[1]],
+                            "position": [land[0], land[1]]
                         };
                         minions[i].push(minion);
 
@@ -263,15 +308,24 @@
     }
 
     function inRange(player, x, y) {
-        var i, toReturn = false, sqr;
+        var i, sqr;
         for (i = 0; i < owned[player].length; i += 1) {
             sqr = owned[player][i];
-            if ((x === sqr[0] - 1 && y === sqr[1]) || (x === sqr[0] + 1 && y === sqr[1]) ||
-                    (x === sqr[0] && y === sqr[1] - 1) || (x === sqr[0] && y === sqr[1] + 1)) {
-                toReturn = true;
+            if (x === sqr[0] - 1 && y === sqr[1]) {
+                //from left
+                return 0;
+            } else if (x === sqr[0] + 1 && y === sqr[1]) {
+                //from right
+                return 1;
+            } else if (x === sqr[0] && y === sqr[1] - 1) {
+                //from up
+                return 2;
+            } else if (x === sqr[0] && y === sqr[1] + 1) {
+                //from down
+                return 3;
             }
         }
-        return toReturn;
+        return false;
     }
 
     function frame(frameTime) {
@@ -494,29 +548,85 @@
         }
         return toReturn;
     }
+    
+    function getSquare(player, x, y) {
+        var i;
+        for (i = 0; i < owned[player].length; i += 1) {
+            if (owned[player][i][0] === x && owned[player][i][1] === y) {
+                return owned[player][i];
+            }
+        }
+    }
+    
+    function orderAttack(player, x, y, range) {
+        var n_x, n_y, ordered_minions = [], i, owned_square;
+        if (range === 0) {
+            n_y = y;
+            n_x = x + 1;
+        } else if (range === 1) {
+            n_y = y;
+            n_x = x - 1;
+        } else if (range === 2) {
+            n_y = y + 1;
+            n_x = x;
+        } else if (range === 3) {
+            n_y = y - 1;
+            n_x = x;
+        }
+        
+        owned_square = getSquare(player, n_x, n_y);
+        
+        //if (owned_square[4] !== 0) {
+            //TODO search for next closest square without order
+        //}
+        
+        for (i = 0; i < minions[player].length; i += 1) {
+            if (ordered_minions.length === owned_square[2]) {
+                break;
+            }
+            if (minions[player][i].origin[0] === n_x && minions[player][i].origin[1] === n_y) {
+                ordered_minions.push(i);
+                minions[player][i].order = 1;
+                //TODO replace with real movement:
+                minions[player][i].position = [x, y];
+            }
+        }
+        
+        busy[player] += 1;
+        progressing[player].push({
+            "x": x,
+            "y": y,
+            "m": ordered_minions,
+            "id": x + "," + y,
+            "f": range
+        });
+        takeoverStatus[x + "," + y] = progressTable();
+    }
+    
+    function orderDefend(player, x, y) {
+        //TODO defence operations
+    }
+    
+    function orderMinions(player, x, y) {
+        if (busy[player] < owned[player].length) {
+            var range = inRange(player, x, y);
+            if (range !== false && (config[x][y] === 9 || (config[x][y] !== player && config[x][y] !== 8))) {
+                orderAttack(player, x, y, range);
+            } else if (config[x][y] === player) {
+                orderDefend(player, x, y);
+            }
+        }
+    }
 
     function mouseupListener(e) {
         foreground.removeEventListener('mousemove', mousemoveListener);
         foreground.removeEventListener('mouseout', mouseoutListener);
         if (moved === false) {
             var x = e.offsetX + current_x - offset_x,
-                y = e.offsetY + current_y - offset_y;
+                y = e.offsetY + current_y - offset_y,
+                range;
             if (x > 0 && y > 0 && x <= back_square_width * x_max && y <= back_square_height * y_max) {
-                x = Math.floor(x / back_square_width);
-                y = Math.floor(y / back_square_height);
-                if (config[x][y] !== 8 && inRange(current, x, y)) {
-                    //TODO: change this to give an order to squares
-                    //TODO: what if player clicks two times the same square? ;>
-                    //TODO: guard order - all of the troops go to specific place
-                    //TODO: add icons representing attack/defence + how many are attacking
-                    progressing[current].push({
-                        "x": x,
-                        "y": y,
-                        "m": [0],
-                        "id": x + "," + y
-                    });
-                    takeoverStatus[x + "," + y] = progressTable();
-                }
+                orderMinions(current, Math.floor(x / back_square_width), Math.floor(y / back_square_height));
             }
         } else {
             moved = false;
@@ -539,7 +649,6 @@
     }
 
     function mobileAndTabletcheck() {
-        var check = false;
         if (navigator.userAgent.match(/Android/i)
                 || navigator.userAgent.match(/webOS/i)
                 || navigator.userAgent.match(/iPhone/i)
@@ -547,9 +656,9 @@
                 || navigator.userAgent.match(/iPod/i)
                 || navigator.userAgent.match(/BlackBerry/i)
                 || navigator.userAgent.match(/Windows Phone/i)) {
-            check = true;
+            return true;
         }
-        return check;
+        return false;
     }
 
     function startGame() {
