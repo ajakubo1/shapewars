@@ -153,15 +153,17 @@
         }
     }
     
-    function takeTakeoverSquare(square, player, init_i, limit_i, adjustment_i,
-                                init_j, limit_j, adjustmet_j) {
-        var i, j, took;
+    function takeTakeoverSquare(square, player, init_i, limit_i, adjustment_i, init_j, limit_j, adjustmet_j, swap) {
+        var i, j, took = true, takeover;
         
-        //=== 1 -> 0, w, 0; 0, h, 0.
         for (i = init_i; i < limit_i; i += 1) {
             for (j = init_j; j < limit_j; j += 1) {
-                if (square[i][j] === 8) {
-                    square[i][j] = player;
+                if (swap && square[j * adjustmet_j][i * adjustment_i] === 8) {
+                    square[j * adjustmet_j][i * adjustment_i] = player;
+                    took = false;
+                    break;
+                } else if (!swap && square[i * adjustment_i][j * adjustmet_j] === 8) {
+                    square[i * adjustment_i][j * adjustmet_j] = player;
                     took = false;
                     break;
                 }
@@ -173,9 +175,23 @@
         }
         return took;
     }
+    
+    function checkIfMinionsFree(player, x, y) {
+        var i;
+        
+        for (i = 0; i < minions[player].length; i += 1) {
+            if (minions[player][i].origin[0] === x && minions[player][i].origin[1] === y && minions[player][i].order !== 0) {
+                console.info("someone is busy", minions[player][i]);
+                return false;
+                
+            }
+        }
+            
+        return true;
+    }
 
     function takeoverStep() {
-        var i, j, process, working, minion, k, took, l, m, deleted;
+        var i, j, process, working, minion, k, took, deleted;
         for (i = 0; i < progressing.length; i += 1) {
             deleted = false;
             for (j = 0; j < progressing[i].length; j += 1) {
@@ -188,66 +204,27 @@
                     if (minion.step > 20) {
                         minion.step = 0;
                         took = true;
-                        //TODO: Depends on the place form where there was attack
                         //TODO: How conflicts are resolved? :>
                         if (process.f === 1) {
-                            for (l = 0; l < progress_width; l += 1) {
-                                for (m = 0; m < progress_height; m += 1) {
-                                    if (takeoverStatus[process.id][l][m] === 8) {
-                                        takeoverStatus[process.id][l][m] = i;
-                                        took = false;
-                                        break;
-                                    }
-                                }
-                                if (!took) {
-                                    break;
-                                }
-                            }
+                            took = takeTakeoverSquare(takeoverStatus[process.id], i, 0, progress_width, 1, 0, progress_height, 1, false);
                         } else if (process.f === 0) {
-                            for (l = progress_width - 1; l >= 0; l -= 1) {
-                                for (m = progress_height - 1; m >= 0; m -= 1) {
-                                    if (takeoverStatus[process.id][l][m] === 8) {
-                                        takeoverStatus[process.id][l][m] = i;
-                                        took = false;
-                                        break;
-                                    }
-                                }
-                                if (!took) {
-                                    break;
-                                }
-                            }
+                            took = takeTakeoverSquare(takeoverStatus[process.id], i, -(progress_width - 1), 1, -1, -(progress_height - 1), 1, -1, false);
                         } else if (process.f === 2) {
-                            for (l = progress_height - 1; l >= 0; l -= 1) {
-                                for (m = progress_width - 1; m >= 0; m -= 1) {
-                                    if (takeoverStatus[process.id][m][l] === 8) {
-                                        takeoverStatus[process.id][m][l] = i;
-                                        took = false;
-                                        break;
-                                    }
-                                }
-                                if (!took) {
-                                    break;
-                                }
-                            }
+                            took = takeTakeoverSquare(takeoverStatus[process.id], i, -(progress_height - 1), 1, -1, -(progress_width - 1), 1, -1, true);
                         } else if (process.f === 3) {
-                            for (l = 0; l < progress_height; l += 1) {
-                                for (m = 0; m < progress_width; m += 1) {
-                                    if (takeoverStatus[process.id][m][l] === 8) {
-                                        takeoverStatus[process.id][m][l] = i;
-                                        took = false;
-                                        break;
-                                    }
-                                }
-                                if (!took) {
-                                    break;
-                                }
-                            }
+                            took = takeTakeoverSquare(takeoverStatus[process.id], i, 0, progress_height, 1, 0, progress_width, 1, true);
                         }
                         
-                        if(took) {
+                        if (took) {
                             minion.order = 0;
+                            minion.position = minion.origin;
+                            
                             //Minion does not work anymore
                             //TODO check if the whole square is ready
+                            
+                            if (checkIfMinionsFree(i, minion.origin[0], minion.origin[1])) {
+                                busy[i] -= 1;
+                            }
                         }
                         
                     }
@@ -292,8 +269,6 @@
                             "position": [land[0], land[1]]
                         };
                         minions[i].push(minion);
-
-                        console.info("created minion nbr: " + land[2] + " at: " + land[0] + "," + land[1] + ". Total amount of minions: " + minions[i].length);
                     }
                 }
             }
@@ -312,7 +287,7 @@
     }
 
     function render_takeover(player, x, y, sqx, sqy) {
-        background_ctx.drawImage(takeover_square[player], x + sqx * back_square_width + offset_x - current_x,
+        middleground_ctx.drawImage(takeover_square[player], x + sqx * back_square_width + offset_x - current_x,
                                  y + sqy * back_square_height + offset_y - current_y);
     }
 
@@ -546,6 +521,7 @@
         }
         
         busy[player] += 1;
+        
         progressing[player].push({
             "x": x,
             "y": y,
@@ -553,6 +529,9 @@
             "id": x + "," + y,
             "f": range
         });
+        
+        console.info("busy", busy[player], progressing[player]);
+        
         takeoverStatus[x + "," + y] = generate_takeoverField();
     }
     
@@ -597,12 +576,16 @@
         }
         background.style.transformOrigin = "0 0"; //scale from top left
         background.style.transform = "scale(" + scale + ")";
+        middleground.style.transformOrigin = "0 0"; //scale from top left
+        middleground.style.transform = "scale(" + scale + ")";
         foreground.style.transformOrigin = "0 0"; //scale from top left
         foreground.style.transform = "scale(" + scale + ")";
 
         background.style.top = top;
+        middleground.style.top = top;
         foreground.style.top = top;
         background.style.left = left;
+        middleground.style.left = left;
         foreground.style.left = left;
     }
     
@@ -725,6 +708,8 @@
         var i;
         foreground.width = width;
         foreground.height = height;
+        middleground.width = width;
+        middleground.height = height;
         background.width = width;
         background.height = height;
         x_max = config.length;
