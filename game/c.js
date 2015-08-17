@@ -27,7 +27,8 @@
             }
         ],
 
-        owned = [[[1, 1, 1, 0, 0]], [[1, 5, 0, 0, 0]]],
+        //x, y, minions, generation counter,  order, order_x, order_y
+        owned = [[[1, 1, 1, 0, 0, -1, -1]], [[1, 5, 0, 0, 0, -1, -1]]],
         busy = [0, 0],
 
         /*
@@ -136,7 +137,7 @@
 
     function conquer(player, x, y) {
         config[x][y] = player;
-        owned[player].push([x, y, 0, 0, 0]);
+        owned[player].push([x, y, 0, 0, 0, -1, -1]);
     }
 
     function removeDeleted(player) {
@@ -152,10 +153,10 @@
             removeDeleted(player);
         }
     }
-    
+
     function takeTakeoverSquare(square, player, init_i, limit_i, adjustment_i, init_j, limit_j, adjustmet_j, swap) {
         var i, j, took = true, takeover;
-        
+
         for (i = init_i; i < limit_i; i += 1) {
             for (j = init_j; j < limit_j; j += 1) {
                 if (swap && square[j * adjustmet_j][i * adjustment_i] === 8) {
@@ -168,26 +169,45 @@
                     break;
                 }
             }
-            
+
             if (!took) {
                 break;
             }
         }
         return took;
     }
-    
+
     function checkIfMinionsFree(player, x, y) {
         var i;
-        
+
         for (i = 0; i < minions[player].length; i += 1) {
             if (minions[player][i].origin[0] === x && minions[player][i].origin[1] === y && minions[player][i].order !== 0) {
-                console.info("someone is busy", minions[player][i]);
                 return false;
-                
             }
         }
-            
+
         return true;
+    }
+
+    function removeSquareOrder(player, x, y) {
+        var i;
+        for (i = 0; i < owned[player].length; i += 1) {
+            if(owned[player][i][5] === x && owned[player][i][6] === y) {
+                owned[player][i][4] = 0;
+                owned[player][i][5] = -1;
+                owned[player][i][6] = -1;
+            }
+        }
+    }
+
+    function appendMinionToProgress(player, minion, x, y) {
+        var i;
+        for (i = 0; i < progressing[player].length; i++) {
+            if (progressing[player][i].x === x && progressing[player][i].y === y) {
+                progressing[player][i].m.push(minion);
+                break;
+            }
+        }
     }
 
     function takeoverStep() {
@@ -214,19 +234,19 @@
                         } else if (process.f === 3) {
                             took = takeTakeoverSquare(takeoverStatus[process.id], i, 0, progress_height, 1, 0, progress_width, 1, true);
                         }
-                        
+
                         if (took) {
                             minion.order = 0;
                             minion.position = minion.origin;
-                            
+
                             //Minion does not work anymore
                             //TODO check if the whole square is ready
-                            
+
                             if (checkIfMinionsFree(i, minion.origin[0], minion.origin[1])) {
                                 busy[i] -= 1;
                             }
                         }
-                        
+
                     }
                 }
 
@@ -234,11 +254,24 @@
                     delete takeoverStatus[process.id];
                     conquer(i, process.x, process.y);
                     //minions can work now :)
-                    
+
                     /*for(k = 0; k < minions[i].length; k += 1) {
                         if()
                     }*/
-                    
+
+                    for (k = 0; k < minions[i].length; k += 1) {
+                        minion = minions[i][k];
+                        if (minion.position[0] === process.x && minion.position[1] === process.y && minion.order === 1) {
+                            minion.order = 0;
+                            minion.position = minion.origin;
+                            if (checkIfMinionsFree(i, minion.origin[0], minion.origin[1])) {
+                                busy[i] -= 1;
+                            }
+                        }
+                    }
+
+                    removeSquareOrder(i, process.x, process.y);
+
                     process.deleted = true;
                     deleted = true;
                     redrawBackground();
@@ -268,7 +301,14 @@
                             "origin": [land[0], land[1]],
                             "position": [land[0], land[1]]
                         };
+
+                        if(land[4] === 1) {
+                            minion.order = 1;
+                            minion.position = [land[5], land[6]];
+                        }
+
                         minions[i].push(minion);
+                        appendMinionToProgress(i, minions.length - 1, land[5], land[6])
                     }
                 }
             }
@@ -456,8 +496,8 @@
         guardBorders();
         redrawBackground();
     }
-    
-    
+
+
     function generate_takeoverField() {
         var i, j, toReturn = [];
         for (i = 0; i < progress_width; i += 1) {
@@ -468,7 +508,7 @@
         }
         return toReturn;
     }
-    
+
     function getSquare(player, x, y) {
         var i;
         for (i = 0; i < owned[player].length; i += 1) {
@@ -477,17 +517,17 @@
             }
         }
     }
-    
+
     /*********************************************************************
      *
      *
-     *  SECTION: ORDERS 
+     *  SECTION: ORDERS
      *
      *
      *********************************************************************/
-    
+
     function order_attack(player, x, y, range) {
-        var n_x, n_y, ordered_minions = [], i, owned_square;
+        var n_x, n_y, ordered_minions = [], i, owned_square, owned_id;
         if (range === 0) {
             n_y = y;
             n_x = x + 1;
@@ -501,13 +541,17 @@
             n_y = y - 1;
             n_x = x;
         }
-        
+
         owned_square = getSquare(player, n_x, n_y);
-        
+
         //if (owned_square[4] !== 0) {
             //TODO search for next closest square without order
         //}
-        
+
+        owned_square[4] = 1;
+        owned_square[5] = x;
+        owned_square[6] = y;
+
         for (i = 0; i < minions[player].length; i += 1) {
             if (ordered_minions.length === owned_square[2]) {
                 break;
@@ -519,9 +563,9 @@
                 minions[player][i].position = [x, y];
             }
         }
-        
+
         busy[player] += 1;
-        
+
         progressing[player].push({
             "x": x,
             "y": y,
@@ -529,16 +573,14 @@
             "id": x + "," + y,
             "f": range
         });
-        
-        console.info("busy", busy[player], progressing[player]);
-        
+
         takeoverStatus[x + "," + y] = generate_takeoverField();
     }
-    
+
     function order_defend(player, x, y) {
         //TODO defence operations
     }
-    
+
     function order_decision(player, x, y) {
         if (busy[player] < owned[player].length) {
             var range = inRange(player, x, y);
@@ -554,11 +596,11 @@
     /*********************************************************************
      *
      *
-     *  SECTION: LISTENERS 
+     *  SECTION: LISTENERS
      *
      *
      *********************************************************************/
-    
+
     function listener_resize() {
         var windowWidth = window.innerWidth,
             windowHeight = window.innerHeight,
@@ -588,7 +630,7 @@
         middleground.style.left = left;
         foreground.style.left = left;
     }
-    
+
     function listener_keydown(e) {
         e = e || window.event;
         var code = e.keyCode,
@@ -637,7 +679,7 @@
             redrawBackground();
         }
     }
-    
+
     function listener_mousemove(e) {
         moveScreen(e.offsetX, e.offsetY);
     }
@@ -682,11 +724,11 @@
         foreground.removeEventListener('touchmove', listener_touchmove);
         moved = false;
     }
-    
+
     /*********************************************************************
      *
      *
-     *  SECTION: MAIN 
+     *  SECTION: MAIN
      *
      *
      *********************************************************************/
