@@ -1,7 +1,7 @@
 
 (function (document, window) {
     "use strict";
-    var config = [
+    var map = [
         [8, 9, 8, 8, 1],
         [9, 0, 9, 9, 9],
         [8, 9, 8, 8, 9],
@@ -123,8 +123,8 @@
         var i, j;
         for (i = 0; i < x_max; i += 1) {
             for (j = 0; j < y_max; j += 1) {
-                if (config[i][j] !== 8) {
-                    render_backgroundSquare(i, j, config[i][j]);
+                if (map[i][j] !== 8) {
+                    render_backgroundSquare(i, j, map[i][j]);
                 }
             }
         }
@@ -136,7 +136,7 @@
     }
 
     function conquer(player, x, y) {
-        config[x][y] = player;
+        map[x][y] = player;
         owned[player].push([x, y, 0, 0, 0, -1, -1]);
     }
 
@@ -584,9 +584,9 @@
     function order_decision(player, x, y) {
         if (busy[player] < owned[player].length) {
             var range = inRange(player, x, y);
-            if (range !== false && (config[x][y] === 9 || (config[x][y] !== player && config[x][y] !== 8))) {
+            if (range !== false && (map[x][y] === 9 || (map[x][y] !== player && map[x][y] !== 8))) {
                 order_attack(player, x, y, range);
-            } else if (config[x][y] === player) {
+            } else if (map[x][y] === player) {
                 order_defend(player, x, y);
             }
         }
@@ -754,8 +754,8 @@
         middleground.height = height;
         background.width = width;
         background.height = height;
-        x_max = config.length;
-        y_max = config[0].length;
+        x_max = map.length;
+        y_max = map[0].length;
 
         for (i = 0; i < players.length; i += 1) {
             if (players[i].type === 0) {
