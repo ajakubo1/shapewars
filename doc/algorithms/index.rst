@@ -6,6 +6,7 @@ Algorithms used
 
 The list of algorithms used in shapewars application
 
+.. _start:
 -----
 Start
 -----
@@ -18,18 +19,20 @@ Start
     * resize
     * mouseup
     * if mobile:
-        
+
         - touchstart
         - touchend
-        
+
     * if pc:
-    
+
         - keydown
         - mousedown
 
 5. Render background
 6. Run main loop (frame)
 
+
+.. _main-loop:
 ---------
 Main loop
 ---------
@@ -40,13 +43,13 @@ Operations performed in main loop:
 
     * takeover phase
     * minion generation phase
-    * minion movement phase - TODO
+    * .. todo:: implement minion movement phase
 
 2. Render update
 
-    * redraw attack arrows - TODO
+    * .. todo:: redraw attack arrows
     * redraw takeover progress
-    * redraw minions - TODO
+    * .. todo:: redraw minions
 
 
 -----
