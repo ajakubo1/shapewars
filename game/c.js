@@ -192,7 +192,7 @@
     function removeSquareOrder(player, x, y) {
         var i;
         for (i = 0; i < owned[player].length; i += 1) {
-            if(owned[player][i][5] === x && owned[player][i][6] === y) {
+            if (owned[player][i][5] === x && owned[player][i][6] === y) {
                 owned[player][i][4] = 0;
                 owned[player][i][5] = -1;
                 owned[player][i][6] = -1;
@@ -202,7 +202,7 @@
 
     function appendMinionToProgress(player, minion, x, y) {
         var i;
-        for (i = 0; i < progressing[player].length; i++) {
+        for (i = 0; i < progressing[player].length; i += 1) {
             if (progressing[player][i].x === x && progressing[player][i].y === y) {
                 progressing[player][i].m.push(minion);
                 break;
@@ -302,13 +302,13 @@
                             "position": [land[0], land[1]]
                         };
 
-                        if(land[4] === 1) {
+                        if (land[4] === 1) {
                             minion.order = 1;
                             minion.position = [land[5], land[6]];
                         }
 
                         minions[i].push(minion);
-                        appendMinionToProgress(i, minions.length - 1, land[5], land[6])
+                        appendMinionToProgress(i, minions.length - 1, land[5], land[6]);
                     }
                 }
             }

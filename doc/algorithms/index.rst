@@ -52,16 +52,18 @@ Operations performed in main loop:
     * .. todo:: redraw minions
 
 
+.. _order:
 -----
 Order
 -----
 
 
-
+.. _attack:
 ------
 Attack
 ------
 
+.. _defence:
 -------
 Defence
 -------
