@@ -95,7 +95,7 @@
         back_square = [],
         takeover_square = [],
         //Foreground settings
-        fore_minion,
+        fore_minion = [],
         fore_minion_height = 30,
         fore_minion_width = 40,
 
@@ -128,6 +128,27 @@
                 }
             }
         }
+    }
+
+    function render_attackArrows() {
+        var i, j, square;
+
+        for(i = 0; i < owned.length; i += 1) {
+            foreground_ctx.beginPath();
+            for(j = 0; j < owned[i].length; j += 1) {
+                square = owned[i][j];
+                if(square[4] === 1) {
+                    foreground_ctx.moveTo(square[0] * back_square_width + back_square_width/2 + offset_x - current_x,
+                                          square[1] * back_square_height + back_square_height/2 + offset_y - current_y);
+                    foreground_ctx.lineTo(square[5] * back_square_width + back_square_width/2 + offset_x - current_x,
+                                          square[6] * back_square_height + back_square_height/2 + offset_y - current_y);
+                }
+            }
+            foreground_ctx.lineWidth = 5;
+            foreground_ctx.strokeStyle = "red";
+            foreground_ctx.stroke();
+        }
+
     }
 
     function redrawBackground() {
@@ -354,6 +375,10 @@
                 render_takeoverProgress(progress.x, progress.y, takeoverStatus[progress.id]);
             }
         }
+
+        //redraw orders
+        render_attackArrows();
+
         //Redraw minions
     }
 
@@ -403,7 +428,7 @@
     }
 
     //Generation functions
-    function generateBackgroundSquare(fill, border) {
+    function generate_backgroundSquare(fill, border) {
         var square = document.createElement(s_canvas),
             context;
         square.width = back_square_width;
@@ -414,7 +439,7 @@
         return square;
     }
 
-    function generateTakeoverSquare(fill, border) {
+    function generate_takeoverSquare(fill, border) {
         var square = document.createElement(s_canvas),
             context;
         square.width = fore_minion_width;
@@ -425,12 +450,12 @@
         return square;
     }
 
-    function generateMinion() {
+    function generate_minion(color) {
         fore_minion = document.createElement(s_canvas);
         fore_minion.width = fore_minion_width;
         fore_minion.height = fore_minion_height;
         var context = fore_minion.getContext('2d');
-        context = render_rect(context, fore_minion_width / 4, fore_minion_height / 4, fore_minion_width / 2, fore_minion_height / 2, "white", "blue");
+        context = render_rect(context, fore_minion_width / 4, fore_minion_height / 4, fore_minion_width / 2, fore_minion_height / 2, "white", color);
         context.shadowBlur = 10;
         context.shadowColor = "white";
         context.globalAlpha = 1;
@@ -440,12 +465,12 @@
     function generate() {
         var i;
         back_square = [];
-        back_square[9] = generateBackgroundSquare("Orange", "Gold");
+        back_square[9] = generate_backgroundSquare("Orange", "Gold");
         for (i = 0; i < players.length; i += 1) {
-            back_square[i] = generateBackgroundSquare(players[i].color, "Gold");
-            takeover_square[i] = generateTakeoverSquare(players[i].color, "Gold");
+            back_square[i] = generate_backgroundSquare(players[i].color, "Gold");
+            takeover_square[i] = generate_takeoverSquare(players[i].color, "Gold");
+            fore_minion[i] = generate_minion(players[i].color);
         }
-        generateMinion();
     }
 
     function generate_globals() {
@@ -516,6 +541,111 @@
                 return owned[player][i];
             }
         }
+        return null;
+    }
+
+    function countDistance(from, to) {
+        return Math.sqrt(Math.pow(from[0] - to[0], 2) + Math.pow(from[1] - to[1], 2));
+    }
+
+    function findNeighbourSquare(player, square, done) {
+        var search, searchlist = [], i, toAdd;
+
+        //left square
+        search = getSquare(player, square[0] - 1, square[1]);
+        if(search !== null && search[4] === 0) {
+            return search;
+        } else if(search !== null) {
+            searchlist.push(search);
+            toAdd = true;
+            for(i = 0; i < done.length; i += 1) {
+                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+                    toAdd = false;
+                    break;
+                }
+            }
+
+            if(toAdd) {
+                done.push(search);
+                searchlist.push(search);
+            }
+        }
+
+        //top square
+        search = getSquare(player, square[0], square[1] - 1);
+        if(search !== null && search[4] === 0) {
+            return search;
+        } else if(search !== null) {
+            searchlist.push(search);
+            toAdd = true;
+            for(i = 0; i < done.length; i += 1) {
+                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+                    toAdd = false;
+                    break;
+                }
+            }
+
+            if(toAdd) {
+                done.push(search);
+                searchlist.push(search);
+            }
+        }
+
+        //right square
+        search = getSquare(player, square[0] + 1, square[1]);
+        if(search !== null && search[4] === 0) {
+            return search;
+        } else if(search !== null) {
+            searchlist.push(search);
+            toAdd = true;
+            for(i = 0; i < done.length; i += 1) {
+                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+                    toAdd = false;
+                    break;
+                }
+            }
+
+            if(toAdd) {
+                done.push(search);
+                searchlist.push(search);
+            }
+        }
+
+        //bottom square
+        search = getSquare(player, square[0], square[1] + 1);
+        if(search !== null && search[4] === 0) {
+            return search;
+        } else if(search !== null){
+            searchlist.push(search);
+            toAdd = true;
+            for(i = 0; i < done.length; i += 1) {
+                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+                    toAdd = false;
+                    break;
+                }
+            }
+
+            if(toAdd) {
+                done.push(search);
+                searchlist.push(search);
+            }
+        }
+
+        //run for every searchlist, compare distances and take with the least distance
+
+        search = null;
+        for(i = 0; i < searchlist.length; i += 1) {
+            toAdd = findNeighbourSquare(player, square, done);
+            if(toAdd !== null && search === null) {
+                search = toAdd;
+            } else if (toAdd !== null) {
+                if(countDistance(square, search) > countDistance(square, toAdd)) {
+                    search = toAdd;
+                }
+            }
+        }
+
+        return search;
     }
 
     /*********************************************************************
@@ -547,6 +677,10 @@
         //if (owned_square[4] !== 0) {
             //TODO search for next closest square without order
         //}
+
+        if (owned_square[4] !== 0) {
+            owned_square = findNeighbourSquare(player, owned_square, [owned_square, ]);
+        }
 
         owned_square[4] = 1;
         owned_square[5] = x;

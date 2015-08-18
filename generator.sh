@@ -5,7 +5,7 @@ PROJECT_DIR="/home/claim/programming/gamedev/shapewars"
 BUILD_DIR="${PROJECT_DIR}/_build"
 DEPLOY_DIR="/home/claim/programming/gamedev/deploy"
 PROJECT_NAME="shapewars"
-FILE_SIZE_LIMIT=13000
+FILE_SIZE_LIMIT=13312
 
 #functions:
 function visualise() {

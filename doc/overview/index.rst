@@ -6,6 +6,9 @@ Overview
 
 This is overwiew of shapewars application
 
+
+.. todo:: I have to make procedurally-generated fields...
+
 ----------
 Map object
 ----------
@@ -25,7 +28,7 @@ Player object
     - 0 - current player
     - 1 - enemy human
     - 2 - enemy AI
-    
+
 ------------
 Owned object
 ------------
