@@ -28,7 +28,7 @@
         ],
 
         //x, y, minions, generation counter,  order, order_x, order_y
-        owned = [[[1, 1, 1, 0, 0, -1, -1]], [[1, 5, 0, 0, 0, -1, -1]]],
+        owned = [[[1, 1, 1, 0, 0, -1, -1]], [[0, 4, 0, 0, 0, -1, -1]]],
         busy = [0, 0],
 
         /*
@@ -52,7 +52,9 @@
             "step": 0,
             "order": 0,
             "origin": [1, 1],
-            "position": [1, 1]
+            "position": [1, 1],
+            "x": 10,
+            "y": 10
         }], []],
 
         foreground = document.getElementById('f'),
@@ -320,16 +322,18 @@
                             "order": 0,
                             "step": 0,
                             "origin": [land[0], land[1]],
-                            "position": [land[0], land[1]]
+                            "position": [land[0], land[1]],
+                            "x": Math.random() * (back_square_width - fore_minion_width),
+                            "y": Math.random() * (back_square_height - fore_minion_height),
                         };
 
                         if (land[4] === 1) {
                             minion.order = 1;
                             minion.position = [land[5], land[6]];
+                            appendMinionToProgress(i, minions.length - 1, land[5], land[6]);
                         }
 
                         minions[i].push(minion);
-                        appendMinionToProgress(i, minions.length - 1, land[5], land[6]);
                     }
                 }
             }
@@ -363,6 +367,22 @@
         }
     }
 
+    function render_minion(player, minion) {
+        foreground_ctx.drawImage(fore_minion[player],
+                                 minion.x + minion.position[0] * back_square_width + offset_x - current_x,
+                                 minion.y + minion.position[1] * back_square_height + offset_y - current_y);
+    }
+
+    function render_minions() {
+        var i, j;
+
+        for(i = 0; i < minions.length; i += 1) {
+            for(j = 0; j < minions[i].length; j += 1) {
+                render_minion(i, minions[i][j]);
+            }
+        }
+    }
+
     function render() {
         var i, j, progress;
         //clean frontend
@@ -380,6 +400,7 @@
         render_attackArrows();
 
         //Redraw minions
+        render_minions();
     }
 
     function inRange(player, x, y) {
@@ -410,10 +431,6 @@
             update(tickCount);
             render();
         }
-    }
-
-    function render_minion(x, y, sqx, sqy) {
-        foreground_ctx.drawImage(fore_minion, x + sqx * back_square_width + offset_x, y + sqy * back_square_height + offset_y);
     }
 
     function render_rect(context, x, y, width, height, stroke, fill, shadow) {
@@ -451,15 +468,16 @@
     }
 
     function generate_minion(color) {
-        fore_minion = document.createElement(s_canvas);
-        fore_minion.width = fore_minion_width;
-        fore_minion.height = fore_minion_height;
-        var context = fore_minion.getContext('2d');
+        var square = document.createElement(s_canvas);
+        square.width = fore_minion_width;
+        square.height = fore_minion_height;
+        var context = square.getContext('2d');
         context = render_rect(context, fore_minion_width / 4, fore_minion_height / 4, fore_minion_width / 2, fore_minion_height / 2, "white", color);
         context.shadowBlur = 10;
         context.shadowColor = "white";
         context.globalAlpha = 1;
         context.fill();
+        return square;
     }
 
     function generate() {
@@ -635,7 +653,7 @@
 
         search = null;
         for(i = 0; i < searchlist.length; i += 1) {
-            toAdd = findNeighbourSquare(player, square, done);
+            toAdd = findNeighbourSquare(player, searchlist[i], done);
             if(toAdd !== null && search === null) {
                 search = toAdd;
             } else if (toAdd !== null) {
@@ -674,10 +692,6 @@
 
         owned_square = getSquare(player, n_x, n_y);
 
-        //if (owned_square[4] !== 0) {
-            //TODO search for next closest square without order
-        //}
-
         if (owned_square[4] !== 0) {
             owned_square = findNeighbourSquare(player, owned_square, [owned_square, ]);
         }
@@ -690,7 +704,7 @@
             if (ordered_minions.length === owned_square[2]) {
                 break;
             }
-            if (minions[player][i].origin[0] === n_x && minions[player][i].origin[1] === n_y) {
+            if (minions[player][i].origin[0] === owned_square[0] && minions[player][i].origin[1] === owned_square[1]) {
                 ordered_minions.push(i);
                 minions[player][i].order = 1;
                 //TODO replace with real movement:
