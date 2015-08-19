@@ -7,10 +7,14 @@
     z-index: 1;
 }
 
+#f {
+    border: 3px solid red;
+}
+
 #b {
     z-index: 0;
     background-color: bisque;
-    border: 3px solid red;
+
 }
 
 body {

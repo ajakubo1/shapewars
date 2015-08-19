@@ -112,6 +112,15 @@
 
         takeover_progress = 0;
 
+
+    /*********************************************************************
+     *
+     *
+     *  SECTION: RENDER FUNCTIONS
+     *
+     *
+     *********************************************************************/
+
     function render_backgroundSquare(x, y, type) {
         var whole_x = x * back_square_width + offset_x - current_x,
             whole_y = y * back_square_height + offset_y - current_y;
@@ -135,15 +144,15 @@
     function render_attackArrows() {
         var i, j, square;
 
-        for(i = 0; i < owned.length; i += 1) {
+        for (i = 0; i < owned.length; i += 1) {
             foreground_ctx.beginPath();
-            for(j = 0; j < owned[i].length; j += 1) {
+            for (j = 0; j < owned[i].length; j += 1) {
                 square = owned[i][j];
-                if(square[4] === 1) {
-                    foreground_ctx.moveTo(square[0] * back_square_width + back_square_width/2 + offset_x - current_x,
-                                          square[1] * back_square_height + back_square_height/2 + offset_y - current_y);
-                    foreground_ctx.lineTo(square[5] * back_square_width + back_square_width/2 + offset_x - current_x,
-                                          square[6] * back_square_height + back_square_height/2 + offset_y - current_y);
+                if (square[4] === 1) {
+                    foreground_ctx.moveTo(square[0] * back_square_width + back_square_width / 2 + offset_x - current_x,
+                                          square[1] * back_square_height + back_square_height / 2 + offset_y - current_y);
+                    foreground_ctx.lineTo(square[5] * back_square_width + back_square_width / 2 + offset_x - current_x,
+                                          square[6] * back_square_height + back_square_height / 2 + offset_y - current_y);
                 }
             }
             foreground_ctx.lineWidth = 5;
@@ -152,6 +161,61 @@
         }
 
     }
+
+    function render_takeover(player, x, y, sqx, sqy) {
+        middleground_ctx.drawImage(takeover_square[player], x + sqx * back_square_width + offset_x - current_x,
+                                 y + sqy * back_square_height + offset_y - current_y);
+    }
+
+    function render_takeoverProgress(progress) {
+        var i, j;
+        for (i = 0; i < progress_width; i += 1) {
+            for (j = 0; j < progress_height; j += 1) {
+                if (takeoverStatus[progress.id][i][j] !== 8) {
+                    render_takeover(takeoverStatus[progress.id][i][j], i * fore_minion_width, j * fore_minion_height, progress.x, progress.y);
+                }
+            }
+        }
+    }
+
+    function render_minion(player, minion) {
+        var whole_x = minion.position[0] * back_square_width + offset_x - current_x,
+            whole_y = minion.position[1] * back_square_height + offset_y - current_y;
+
+        if (whole_x >= limit_x_left && whole_x <= limit_x_right && whole_y >= limit_y_top  && whole_y <= limit_y_bottom) {
+            foreground_ctx.drawImage(fore_minion[player], minion.x + whole_x, minion.y + whole_y);
+        }
+    }
+
+    function render_minions() {
+        var i, j;
+
+        for (i = 0; i < minions.length; i += 1) {
+            for (j = 0; j < minions[i].length; j += 1) {
+                render_minion(i, minions[i][j]);
+            }
+        }
+    }
+
+    function render_rect(context, x, y, width, height, stroke, fill, shadow) {
+        context.beginPath();
+        context.rect(x, y, width, height);
+        context.closePath();
+        context.lineWidth = 2;
+        context.strokeStyle = stroke;
+        context.stroke();
+        context.fillStyle = fill;
+        return context;
+    }
+
+    /*********************************************************************
+     *
+     *
+     *  SECTION: UPDATE FUNCTIONS
+     *
+     *
+     *********************************************************************/
+
 
     function redrawBackground() {
         background_ctx.clearRect(0, 0, width, height);
@@ -324,7 +388,7 @@
                             "origin": [land[0], land[1]],
                             "position": [land[0], land[1]],
                             "x": Math.random() * (back_square_width - fore_minion_width),
-                            "y": Math.random() * (back_square_height - fore_minion_height),
+                            "y": Math.random() * (back_square_height - fore_minion_height)
                         };
 
                         if (land[4] === 1) {
@@ -340,48 +404,48 @@
         }
     }
 
-    function update(count) {
-        while (count) {
-            updateTime += tickLength;
-            //recount progress
-            takeoverStep();
-            //create minions?
-            createMinions();
-            count -= 1;
-        }
-    }
-
-    function render_takeover(player, x, y, sqx, sqy) {
-        middleground_ctx.drawImage(takeover_square[player], x + sqx * back_square_width + offset_x - current_x,
-                                 y + sqy * back_square_height + offset_y - current_y);
-    }
-
-    function render_takeoverProgress(x, y, progress) {
+    function iteration2d(table, fun) {
         var i, j;
-        for (i = 0; i < progress_width; i += 1) {
-            for (j = 0; j < progress_height; j += 1) {
-                if (progress[i][j] !== 8) {
-                    render_takeover(progress[i][j], i * fore_minion_width, j * fore_minion_height, x, y);
-                }
+
+        for (i = 0; i < table.length; i += 1) {
+            for (j = 0; j < table[i].length; j += 1) {
+                fun(table[i][j]);
             }
         }
     }
 
-    function render_minion(player, minion) {
-        foreground_ctx.drawImage(fore_minion[player],
-                                 minion.x + minion.position[0] * back_square_width + offset_x - current_x,
-                                 minion.y + minion.position[1] * back_square_height + offset_y - current_y);
-    }
+    function moveMinion(minion) {
+        if (minion.order === 0) {
+            minion.x += Math.random() * 2 - 1;
+            minion.y += Math.random() * 2 - 1;
 
-    function render_minions() {
-        var i, j;
-
-        for(i = 0; i < minions.length; i += 1) {
-            for(j = 0; j < minions[i].length; j += 1) {
-                render_minion(i, minions[i][j]);
+            if (minion.x < 0) {
+                minion.x = 0;
+            } else if (minion.x > back_square_width - fore_minion_width) {
+                minion.x = back_square_width - fore_minion_width;
             }
+
+            if (minion.y < 0) {
+                minion.y = 0;
+            } else if (minion.y > back_square_height - fore_minion_height) {
+                minion.y = back_square_height - fore_minion_height;
+            }
+        } else {
+            //TODO figure it out - they don't just stand around :)
         }
     }
+
+    function moveMinions() {
+        iteration2d(minions, moveMinion);
+    }
+
+    /*********************************************************************
+     *
+     *
+     *  SECTION: THE GAME LOOP
+     *
+     *
+     *********************************************************************/
 
     function render() {
         var i, j, progress;
@@ -389,12 +453,7 @@
         foreground_ctx.clearRect(0, 0, width, height);
         //Redraw progress
 
-        for (i = 0; i < progressing.length; i += 1) {
-            for (j = 0; j < progressing[i].length; j += 1) {
-                progress = progressing[i][j];
-                render_takeoverProgress(progress.x, progress.y, takeoverStatus[progress.id]);
-            }
-        }
+        iteration2d(progressing, render_takeoverProgress);
 
         //redraw orders
         render_attackArrows();
@@ -403,25 +462,14 @@
         render_minions();
     }
 
-    function inRange(player, x, y) {
-        var i, sqr;
-        for (i = 0; i < owned[player].length; i += 1) {
-            sqr = owned[player][i];
-            if (x === sqr[0] - 1 && y === sqr[1]) {
-                //from left
-                return 0;
-            } else if (x === sqr[0] + 1 && y === sqr[1]) {
-                //from right
-                return 1;
-            } else if (x === sqr[0] && y === sqr[1] - 1) {
-                //from up
-                return 2;
-            } else if (x === sqr[0] && y === sqr[1] + 1) {
-                //from down
-                return 3;
-            }
+    function update(count) {
+        while (count) {
+            updateTime += tickLength;
+            takeoverStep();
+            createMinions();
+            moveMinions();
+            count -= 1;
         }
-        return false;
     }
 
     function frame(frameTime) {
@@ -433,18 +481,15 @@
         }
     }
 
-    function render_rect(context, x, y, width, height, stroke, fill, shadow) {
-        context.beginPath();
-        context.rect(x, y, width, height);
-        context.closePath();
-        context.lineWidth = 2;
-        context.strokeStyle = stroke;
-        context.stroke();
-        context.fillStyle = fill;
-        return context;
-    }
 
-    //Generation functions
+    /*********************************************************************
+     *
+     *
+     *  SECTION: GENERATE FUNCTIONS
+     *
+     *
+     *********************************************************************/
+
     function generate_backgroundSquare(fill, border) {
         var square = document.createElement(s_canvas),
             context;
@@ -468,10 +513,10 @@
     }
 
     function generate_minion(color) {
-        var square = document.createElement(s_canvas);
+        var square = document.createElement(s_canvas), context;
         square.width = fore_minion_width;
         square.height = fore_minion_height;
-        var context = square.getContext('2d');
+        context = square.getContext('2d');
         context = render_rect(context, fore_minion_width / 4, fore_minion_height / 4, fore_minion_width / 2, fore_minion_height / 2, "white", color);
         context.shadowBlur = 10;
         context.shadowColor = "white";
@@ -479,6 +524,7 @@
         context.fill();
         return square;
     }
+
 
     function generate() {
         var i;
@@ -513,34 +559,7 @@
         }
     }
 
-    function guardBorders() {
-        if (current_y < limit_y_top) {
-            current_y = limit_y_top;
-        } else if (current_y > y_limit) {
-            current_y = y_limit;
-        }
-        if (current_x < limit_x_left) {
-            current_x = limit_x_left;
-        } else if (current_x > x_limit) {
-            current_x = x_limit;
-        }
-    }
-
-    function moveScreen(x, y) {
-        if (!moved) {
-            moved = true;
-            moved_x = x;
-            moved_y = y;
-        }
-        current_x -= x - moved_x;
-        current_y -= y - moved_y;
-        moved_x = x;
-        moved_y = y;
-        guardBorders();
-        redrawBackground();
-    }
-
-
+    //For order -> attack
     function generate_takeoverField() {
         var i, j, toReturn = [];
         for (i = 0; i < progress_width; i += 1) {
@@ -550,6 +569,35 @@
             }
         }
         return toReturn;
+    }
+
+    /*********************************************************************
+     *
+     *
+     *  SECTION: ORDERS
+     *
+     *
+     *********************************************************************/
+
+    function inRange(player, x, y) {
+        var i, sqr;
+        for (i = 0; i < owned[player].length; i += 1) {
+            sqr = owned[player][i];
+            if (x === sqr[0] - 1 && y === sqr[1]) {
+                //from left
+                return 0;
+            } else if (x === sqr[0] + 1 && y === sqr[1]) {
+                //from right
+                return 1;
+            } else if (x === sqr[0] && y === sqr[1] - 1) {
+                //from up
+                return 2;
+            } else if (x === sqr[0] && y === sqr[1] + 1) {
+                //from down
+                return 3;
+            }
+        }
+        return false;
     }
 
     function getSquare(player, x, y) {
@@ -571,19 +619,19 @@
 
         //left square
         search = getSquare(player, square[0] - 1, square[1]);
-        if(search !== null && search[4] === 0) {
+        if (search !== null && search[4] === 0) {
             return search;
-        } else if(search !== null) {
+        } else if (search !== null) {
             searchlist.push(search);
             toAdd = true;
-            for(i = 0; i < done.length; i += 1) {
-                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+            for (i = 0; i < done.length; i += 1) {
+                if (done[i][0] === search[0] && done[i][1] === search[1]) {
                     toAdd = false;
                     break;
                 }
             }
 
-            if(toAdd) {
+            if (toAdd) {
                 done.push(search);
                 searchlist.push(search);
             }
@@ -591,19 +639,19 @@
 
         //top square
         search = getSquare(player, square[0], square[1] - 1);
-        if(search !== null && search[4] === 0) {
+        if (search !== null && search[4] === 0) {
             return search;
-        } else if(search !== null) {
+        } else if (search !== null) {
             searchlist.push(search);
             toAdd = true;
-            for(i = 0; i < done.length; i += 1) {
-                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+            for (i = 0; i < done.length; i += 1) {
+                if (done[i][0] === search[0] && done[i][1] === search[1]) {
                     toAdd = false;
                     break;
                 }
             }
 
-            if(toAdd) {
+            if (toAdd) {
                 done.push(search);
                 searchlist.push(search);
             }
@@ -611,19 +659,19 @@
 
         //right square
         search = getSquare(player, square[0] + 1, square[1]);
-        if(search !== null && search[4] === 0) {
+        if (search !== null && search[4] === 0) {
             return search;
-        } else if(search !== null) {
+        } else if (search !== null) {
             searchlist.push(search);
             toAdd = true;
-            for(i = 0; i < done.length; i += 1) {
-                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+            for (i = 0; i < done.length; i += 1) {
+                if (done[i][0] === search[0] && done[i][1] === search[1]) {
                     toAdd = false;
                     break;
                 }
             }
 
-            if(toAdd) {
+            if (toAdd) {
                 done.push(search);
                 searchlist.push(search);
             }
@@ -631,19 +679,19 @@
 
         //bottom square
         search = getSquare(player, square[0], square[1] + 1);
-        if(search !== null && search[4] === 0) {
+        if (search !== null && search[4] === 0) {
             return search;
-        } else if(search !== null){
+        } else if (search !== null) {
             searchlist.push(search);
             toAdd = true;
-            for(i = 0; i < done.length; i += 1) {
-                if(done[i][0] === search[0] && done[i][1] === search[1]) {
+            for (i = 0; i < done.length; i += 1) {
+                if (done[i][0] === search[0] && done[i][1] === search[1]) {
                     toAdd = false;
                     break;
                 }
             }
 
-            if(toAdd) {
+            if (toAdd) {
                 done.push(search);
                 searchlist.push(search);
             }
@@ -652,12 +700,12 @@
         //run for every searchlist, compare distances and take with the least distance
 
         search = null;
-        for(i = 0; i < searchlist.length; i += 1) {
+        for (i = 0; i < searchlist.length; i += 1) {
             toAdd = findNeighbourSquare(player, searchlist[i], done);
-            if(toAdd !== null && search === null) {
+            if (toAdd !== null && search === null) {
                 search = toAdd;
             } else if (toAdd !== null) {
-                if(countDistance(square, search) > countDistance(square, toAdd)) {
+                if (countDistance(square, search) > countDistance(square, toAdd)) {
                     search = toAdd;
                 }
             }
@@ -665,14 +713,6 @@
 
         return search;
     }
-
-    /*********************************************************************
-     *
-     *
-     *  SECTION: ORDERS
-     *
-     *
-     *********************************************************************/
 
     function order_attack(player, x, y, range) {
         var n_x, n_y, ordered_minions = [], i, owned_square, owned_id;
@@ -693,7 +733,7 @@
         owned_square = getSquare(player, n_x, n_y);
 
         if (owned_square[4] !== 0) {
-            owned_square = findNeighbourSquare(player, owned_square, [owned_square, ]);
+            owned_square = findNeighbourSquare(player, owned_square, [owned_square ]);
         }
 
         owned_square[4] = 1;
@@ -748,6 +788,35 @@
      *
      *
      *********************************************************************/
+
+
+    function guardBorders() {
+        if (current_y < limit_y_top) {
+            current_y = limit_y_top;
+        } else if (current_y > y_limit) {
+            current_y = y_limit;
+        }
+        if (current_x < limit_x_left) {
+            current_x = limit_x_left;
+        } else if (current_x > x_limit) {
+            current_x = x_limit;
+        }
+    }
+
+    function moveScreen(x, y) {
+        if (!moved) {
+            moved = true;
+            moved_x = x;
+            moved_y = y;
+        }
+        current_x -= x - moved_x;
+        current_y -= y - moved_y;
+        moved_x = x;
+        moved_y = y;
+        guardBorders();
+        redrawBackground();
+    }
+
 
     function listener_resize() {
         var windowWidth = window.innerWidth,
