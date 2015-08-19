@@ -47,9 +47,9 @@ Operations performed in main loop:
 
 2. Render update
 
-    * .. todo:: redraw attack arrows
+    * redraw attack arrows
     * redraw takeover progress
-    * .. todo:: redraw minions
+    * redraw minions
 
 
 .. _order:

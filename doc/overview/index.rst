@@ -9,6 +9,20 @@ This is overwiew of shapewars application
 
 .. todo:: I have to make procedurally-generated fields...
 
+.. todo:: Allow for a couple of fields attack one field
+
+.. todo:: apply health to minions
+
+.. todo:: add minion movements
+
+.. todo:: after a minute order may change:
+
+    * conquer everything
+    * conquer a player
+    * can't attack a player
+    * can't attack neutral
+    * conquer specific field?
+
 ----------
 Map object
 ----------

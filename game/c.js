@@ -54,7 +54,8 @@
             "origin": [1, 1],
             "position": [1, 1],
             "x": 10,
-            "y": 10
+            "y": 10,
+            "health": 60
         }], []],
 
         foreground = document.getElementById('f'),
@@ -388,7 +389,8 @@
                             "origin": [land[0], land[1]],
                             "position": [land[0], land[1]],
                             "x": Math.random() * (back_square_width - fore_minion_width),
-                            "y": Math.random() * (back_square_height - fore_minion_height)
+                            "y": Math.random() * (back_square_height - fore_minion_height),
+                            "health": 60
                         };
 
                         if (land[4] === 1) {
