@@ -68,11 +68,11 @@
         current,
         width = 680,
         height = 480,
-        x_max,
+        map_width,
         x_limit,
         current_x = 0,
         size_x = 4,
-        y_max,
+        map_height,
         y_limit,
         current_y = 0,
         size_y = 3,
@@ -92,9 +92,9 @@
         offset_x,
         offset_y,
         limit_x_left,
-        limit_x_right,
+        visible_limit_right,
         limit_y_top,
-        limit_y_bottom,
+        visible_limit_bottom,
         back_square = [],
         takeover_square = [],
         //Foreground settings
@@ -126,15 +126,15 @@
         var whole_x = x * back_square_width + offset_x - current_x,
             whole_y = y * back_square_height + offset_y - current_y;
 
-        if (whole_x >= limit_x_left && whole_x <= limit_x_right && whole_y >= limit_y_top  && whole_y <= limit_y_bottom) {
+        if (whole_x >= limit_x_left && whole_x <= visible_limit_right && whole_y >= limit_y_top  && whole_y <= visible_limit_bottom) {
             background_ctx.drawImage(back_square[type], whole_x, whole_y);
         }
     }
 
     function render_background() {
         var i, j;
-        for (i = 0; i < x_max; i += 1) {
-            for (j = 0; j < y_max; j += 1) {
+        for (i = 0; i < map_width; i += 1) {
+            for (j = 0; j < map_height; j += 1) {
                 if (map[i][j] !== 8) {
                     render_backgroundSquare(i, j, map[i][j]);
                 }
@@ -183,7 +183,7 @@
         var whole_x = minion.position[0] * back_square_width + offset_x - current_x,
             whole_y = minion.position[1] * back_square_height + offset_y - current_y;
 
-        if (whole_x >= limit_x_left && whole_x <= limit_x_right && whole_y >= limit_y_top  && whole_y <= limit_y_bottom) {
+        if (whole_x >= limit_x_left && whole_x <= visible_limit_right && whole_y >= limit_y_top  && whole_y <= visible_limit_bottom) {
             foreground_ctx.drawImage(fore_minion[player], minion.x + whole_x, minion.y + whole_y);
         }
     }
@@ -540,12 +540,12 @@
         offset_x = (width - size_x * back_square_width) / 2;
         offset_y = (height - size_y * back_square_height) / 2;
 
-        x_limit = (x_max - size_x + 1) * back_square_width;
-        y_limit = (y_max - size_y + 1) * back_square_height;
+        x_limit = (map_width - size_x + 1) * back_square_width;
+        y_limit = (map_height - size_y + 1) * back_square_height;
         limit_x_left = -1 * back_square_width;
-        limit_x_right = size_x * back_square_width + offset_x;
+        visible_limit_right = size_x * back_square_width + offset_x;
         limit_y_top = -1 * back_square_height;
-        limit_y_bottom = size_y * back_square_height + offset_y;
+        visible_limit_bottom = size_y * back_square_height + offset_y;
         generate();
         if (current_x > x_limit) {
             current_x = x_limit;
@@ -919,7 +919,7 @@
             var x = e.offsetX + current_x - offset_x,
                 y = e.offsetY + current_y - offset_y,
                 range;
-            if (x > 0 && y > 0 && x <= back_square_width * x_max && y <= back_square_height * y_max) {
+            if (x > 0 && y > 0 && x <= back_square_width * map_width && y <= back_square_height * map_height) {
                 order_decision(current, Math.floor(x / back_square_width), Math.floor(y / back_square_height));
             }
         } else {
@@ -971,8 +971,8 @@
         middleground.height = height;
         background.width = width;
         background.height = height;
-        x_max = map.length;
-        y_max = map[0].length;
+        map_width = map.length;
+        map_height = map[0].length;
 
         for (i = 0; i < players.length; i += 1) {
             if (players[i].type === 0) {
