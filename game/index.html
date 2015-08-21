@@ -1,16 +1,33 @@
-<!DOCTYPE html>
 <html>
-    <head lang="en">
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
-        <title>Shapewars</title>
-        <link rel="stylesheet" href="s.css"/>
-        <script src="/socket.io/socket.io.js"></script>
-    </head>
-    <body>
-        <canvas id="b"></canvas>
-        <canvas id="m"></canvas>
-        <canvas id="f"></canvas>
-        <script src="c.js"></script>
-    </body>
+
+<head>
+    <title>My Game</title>
+    <!-- The socket.io client lib is for free. ;-) -->
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <h1>My Game</h1>
+    <ul id="log"></ul>
+    <script>
+        socket = io(document.location.href);
+
+        socket.on('srv-msg', function (data) {
+            log.innerHTML += '<li>Received: ' + JSON.stringify(data) + '</li>';
+        });
+
+        function send(data) {
+            log.innerHTML += '<li>Sending: ' + JSON.stringify(data) + '</li>';
+            socket.emit('cli-msg', data);
+        }
+        send('Hello');
+        send(42);
+        send(['aa', 'bb', 'cc']);
+        send({
+            aa: 111,
+            bb: 222
+        });
+    </script>
+</body>
+
 </html>
