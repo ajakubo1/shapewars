@@ -3,6 +3,7 @@ var SHAPEWARS = function (document, window) {
 
     //Map-related variables for 1d to 2d mapping
     var map, map_width, map_height,
+        conquestMap, conquestProgressMap,
         //Player-related variables
         player_id, player_name, player_color, player_type, player_conquered,
         //What is the player that plays the game
@@ -73,6 +74,10 @@ var SHAPEWARS = function (document, window) {
 
     function helper_mapY(i, width) {
         return Math.floor(i / width);
+    }
+    
+    function helper_remapPoint(i, j, width) {
+        return j * width + i;
     }
 
     /*********************************************************************
@@ -387,15 +392,6 @@ var SHAPEWARS = function (document, window) {
 
         //TODO: dunno how normal init would look like
 
-        //Initialize map
-        map_height = input_map.length;
-        map_width = input_map[0].length;
-        map = new Int8Array(input_map.length * input_map[0].length);
-        for (i = 0; i < input_map.length; i += 1) {
-            for (j = 0; j < input_map[0].length; j += 1) {
-                map[i * input_map[0].length + j] = input_map[i][j];
-            }
-        }
         //Initialize player-related variables
         player_id = new Int8Array(input_players.length);
         player_name = new Array(input_players.length);
@@ -412,6 +408,16 @@ var SHAPEWARS = function (document, window) {
                 current_player = i;
             }
             player_conquered[i] = 1;
+        }
+        
+        //Initialize map
+        map_height = input_map.length;
+        map_width = input_map[0].length;
+        map = new Int8Array(input_map.length * input_map[0].length);
+        for (i = 0; i < input_map.length; i += 1) {
+            for (j = 0; j < input_map[0].length; j += 1) {
+                map[i * input_map[0].length + j] = input_map[i][j];
+            }
         }
 
         //TODO: recound current_x and current_y
