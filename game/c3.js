@@ -71,11 +71,11 @@
         map_width,
         x_limit,
         current_x = 0,
-        size_x = 4,
+        screen_width = 4,
         map_height,
         y_limit,
         current_y = 0,
-        size_y = 3,
+        screen_height = 3,
         step_x = 32,
         step_y = 30,
         scale,
@@ -537,15 +537,15 @@
     }
 
     function generate_globals() {
-        offset_x = (width - size_x * back_square_width) / 2;
-        offset_y = (height - size_y * back_square_height) / 2;
+        offset_x = (width - screen_width * back_square_width) / 2;
+        offset_y = (height - screen_height * back_square_height) / 2;
 
-        x_limit = (map_width - size_x + 1) * back_square_width;
-        y_limit = (map_height - size_y + 1) * back_square_height;
+        x_limit = (map_width - screen_width + 1) * back_square_width;
+        y_limit = (map_height - screen_height + 1) * back_square_height;
         limit_x_left = -1 * back_square_width;
-        visible_limit_right = size_x * back_square_width + offset_x;
+        visible_limit_right = screen_width * back_square_width + offset_x;
         limit_y_top = -1 * back_square_height;
-        visible_limit_bottom = size_y * back_square_height + offset_y;
+        visible_limit_bottom = screen_height * back_square_height + offset_y;
         generate();
         if (current_x > x_limit) {
             current_x = x_limit;
@@ -870,8 +870,8 @@
                 zoom -= 1;
                 back_square_width *= 2;
                 back_square_height *= 2;
-                size_x /= 2;
-                size_y /= 2;
+                screen_width /= 2;
+                screen_height /= 2;
                 current_x *= 2;
                 current_y *= 2;
                 generate_globals();
@@ -882,8 +882,8 @@
                 zoom += 1;
                 back_square_width /= 2;
                 back_square_height /= 2;
-                size_x *= 2;
-                size_y *= 2;
+                screen_width *= 2;
+                screen_height *= 2;
                 current_x /= 2;
                 current_y /= 2;
                 generate_globals();

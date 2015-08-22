@@ -4,7 +4,7 @@ var SHAPEWARS = function (document, window) {
     //Map-related variables for 1d to 2d mapping
     var map, map_width, map_height,
         //Player-related variables
-        player_id, player_name, player_color, player_type, player_busy,
+        player_id, player_name, player_color, player_type, player_conquered,
         //What is the player that plays the game
         current_player,
 
@@ -67,12 +67,12 @@ var SHAPEWARS = function (document, window) {
         }
     }
 
-    function helper_mapX(i) {
-        return i % map_width;
+    function helper_mapX(i, width) {
+        return i % width;
     }
 
-    function helper_mapY(i) {
-        return Math.floor(i / map_width);
+    function helper_mapY(i, width) {
+        return Math.floor(i / width);
     }
 
     /*********************************************************************
@@ -88,8 +88,8 @@ var SHAPEWARS = function (document, window) {
 
         for (i = 0; i < map.length; i += 1) {
             if (map[i] !== 8) {
-                x = helper_mapX(i) * background_square_width + offset_x - current_x;
-                y = helper_mapY(i) * background_square_height + offset_y - current_y;
+                x = helper_mapX(i, map_width) * background_square_width + offset_x - current_x;
+                y = helper_mapY(i, map_width) * background_square_height + offset_y - current_y;
                 if (x >= limit_left && x <= visible_limit_right && y >= limit_top && y <= visible_limit_bottom) {
                     background_ctx.drawImage(background_square[map[i]], x, y);
                 }
@@ -401,7 +401,7 @@ var SHAPEWARS = function (document, window) {
         player_name = new Array(input_players.length);
         player_color = new Array(input_players.length);
         player_type = new Int8Array(input_players.length);
-        player_busy = new Int8Array(input_players.length);
+        player_conquered = new Int8Array(input_players.length);
         //Fill player-related variables
         for (i = 0; i < input_players.length; i += 1) {
             player_id[i] = i;
@@ -411,7 +411,7 @@ var SHAPEWARS = function (document, window) {
             if (player_type[i] === 0) {
                 current_player = i;
             }
-            player_busy[i] = 0;
+            player_conquered[i] = 1;
         }
 
         //TODO: recound current_x and current_y
