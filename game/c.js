@@ -3,9 +3,9 @@ var SHAPEWARS = function (document, window) {
 
     //Map-related variables for 1d to 2d mapping
     var map, map_width, map_height,
-        conquestMap, conquestProgressMap,
+        conquestMap, conquestProgressMap, minionMap,
         //Player-related variables
-        player_id, player_name, player_color, player_type, player_conquered,
+        player_id, player_name, player_color, player_type, player_conquered, player_availableMinions,
         //What is the player that plays the game
         current_player,
 
@@ -75,7 +75,7 @@ var SHAPEWARS = function (document, window) {
     function helper_mapY(i, width) {
         return Math.floor(i / width);
     }
-    
+
     function helper_remapPoint(i, j, width) {
         return j * width + i;
     }
@@ -128,6 +128,12 @@ var SHAPEWARS = function (document, window) {
 
 
     function order_decision(player, x, y) {
+        console.info(player, x, y);
+
+        if (player_availableMinions[player] > 0) {
+
+        }
+
         /*if (busy[player] < owned[player].length) {
             var range = inRange(player, x, y);
             if (range !== false && (map[x][y] === 9 || (map[x][y] !== player && map[x][y] !== 8))) {
@@ -398,6 +404,7 @@ var SHAPEWARS = function (document, window) {
         player_color = new Array(input_players.length);
         player_type = new Int8Array(input_players.length);
         player_conquered = new Int8Array(input_players.length);
+        player_availableMinions = new Int8Array(input_players.length);
         //Fill player-related variables
         for (i = 0; i < input_players.length; i += 1) {
             player_id[i] = i;
@@ -408,8 +415,9 @@ var SHAPEWARS = function (document, window) {
                 current_player = i;
             }
             player_conquered[i] = 1;
+            player_availableMinions[i] = 1;
         }
-        
+
         //Initialize map
         map_height = input_map.length;
         map_width = input_map[0].length;
