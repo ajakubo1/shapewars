@@ -75,7 +75,8 @@ var SHAPEWARS = function (document, window) {
             "destination_y": 5,
             "destination_local_x": 6,
             "destination_local_y": 7,
-            "order": 8
+            "order": 8,
+            "size": 9
         },
         
         enum_order = {
@@ -133,11 +134,20 @@ var SHAPEWARS = function (document, window) {
         for (i = 0; i < map.length; i += 1) {
             if (map[i] < 8 && (map_minion[i] < map_type[i])) {
                 map_minion_progress[i] += 1;
-                if(map_minion_progress[i] >= enum_minion_generationBarier) {
+                if (map_minion_progress[i] >= enum_minion_generationBarier) {
                     map_minion_progress[i] = 0;
-                    map_minion[i] += 1;
                     player_availableMinions[map[i]] += 1;
-                    console.info(player_name[map[i]], map_minion[i]);
+                    player_minions[i][map_minion[i]] = new Int8Array(enum_minion.size);
+                    player_minions[i][map_minion[i]][enum_minion.current_x] = helper_mapX(i, map_width);
+                    player_minions[i][map_minion[i]][enum_minion.current_y] = helper_mapY(i, map_width);
+                    player_minions[i][map_minion[i]][enum_minion.current_local_x] = Math.random() * (background_square_width - minion_width);
+                    player_minions[i][map_minion[i]][enum_minion.current_local_y] = Math.random() * (background_square_height - minion_height);
+                    player_minions[i][map_minion[i]][enum_minion.destination_x] = -1;
+                    player_minions[i][map_minion[i]][enum_minion.destination_y] = -1;
+                    player_minions[i][map_minion[i]][enum_minion.destination_local_x] = -1;
+                    player_minions[i][map_minion[i]][enum_minion.destination_local_y] = -1;
+                    player_minions[i][map_minion[i]][enum_minion.order] = enum_order.none;
+                    map_minion[i] += 1;
                 }
             }
         }
@@ -153,7 +163,6 @@ var SHAPEWARS = function (document, window) {
 
     function render_background() {
         var i, x, y;
-
         for (i = 0; i < map.length; i += 1) {
             if (map[i] !== 8) {
                 x = helper_mapX(i, map_width) * background_square_width + offset_x - current_x;
@@ -180,6 +189,24 @@ var SHAPEWARS = function (document, window) {
         context.fillStyle = fill;
         return context;
     }
+    
+    function render_minions() {
+        var i, j, minion, x, y;
+        for (i = 0; i < map.length; i += 1) {
+            if (map[i] < 8) {
+                for (j = 0; j < map_type[i]; j += 1) {
+                    if (player_minions[i][j] !== undefined) {
+                        minion = player_minions[i][j];
+                        x = minion[enum_minion.current_x] * background_square_width + minion[enum_minion.current_local_x] + offset_x - current_x;
+                        y = minion[enum_minion.current_y] * background_square_height + minion[enum_minion.current_local_y] + offset_y - current_y;
+                        if (x >= limit_left && x <= visible_limit_right && y >= limit_top && y <= visible_limit_bottom) {
+                            foreground_ctx.drawImage(minion_square[map[i]], x, y);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /*********************************************************************
      *
@@ -190,7 +217,9 @@ var SHAPEWARS = function (document, window) {
      *********************************************************************/
 
     function render() {
+        foreground_ctx.clearRect(0, 0, width, height);
         
+        render_minions();
     }
 
     function logic(count) {
@@ -271,16 +300,31 @@ var SHAPEWARS = function (document, window) {
         context.fill();
         return square;
     }
+    
+    function generate_minionSquare(color) {
+        var square = document.createElement('canvas'), context;
+        square.width = minion_width;
+        square.height = minion_height;
+        context = square.getContext('2d');
+        context = render_rect(context, minion_width / 4, minion_height / 4, minion_width / 2, minion_height / 2, "white", color);
+        context.shadowBlur = 10;
+        context.shadowColor = "white";
+        context.globalAlpha = 1;
+        context.fill();
+        return square;
+    }
 
     function generate() {
         var i;
         background_square = new Array(10);
+        minion_square = new Array(player_id.length);
         for (i = 0; i < 10; i += 1) {
             background_square[i] = undefined;
         }
         background_square[9] = generate_backgroundSquare("Orange", "Gold");
         for (i = 0; i < player_id.length; i += 1) {
             background_square[i] = generate_backgroundSquare(player_color[i], "Gold");
+            minion_square[i] = generate_minionSquare(player_color[i]);
             //takeover_square[i] = generate_takeoverSquare(player_color[i], "Gold");
             //fore_minion[i] = generate_minion(player_color[i]);
         }
@@ -490,6 +534,7 @@ var SHAPEWARS = function (document, window) {
         player_type = new Int8Array(input_players.length);
         player_conquered = new Int8Array(input_players.length);
         player_availableMinions = new Int8Array(input_players.length);
+        
         //Fill player-related variables
         for (i = 0; i < input_players.length; i += 1) {
             player_id[i] = i;
@@ -512,6 +557,7 @@ var SHAPEWARS = function (document, window) {
         map_minion_progress = new Int16Array(input_map.length * input_map[0].length);
         map_conquest = new Array(input_map.length * input_map[0].length);
         map_conquestProgress = new Array(input_map.length * input_map[0].length);
+        player_minions = new Array(input_map.length * input_map[0].length);
         for (i = 0; i < input_map.length; i += 1) {
             for (j = 0; j < input_map[0].length; j += 1) {
                 map[i * input_map[0].length + j] = input_map[i][j];
@@ -526,8 +572,40 @@ var SHAPEWARS = function (document, window) {
                     map_conquestProgress[i * input_map[0].length + j] = new Int8Array(1);
                 }
                 
+                player_minions[i * input_map[0].length + j] = new Array(type_map[i][j]);
+                
                 if (input_map[i][j] < 8) {
                     map_minion[i * input_map[0].length + j] = 3;
+                    player_minions[i * input_map[0].length + j][0] = new Int8Array(enum_minion.size);
+                    player_minions[i * input_map[0].length + j][0][enum_minion.current_x] = j;
+                    player_minions[i * input_map[0].length + j][0][enum_minion.current_y] = i;
+                    player_minions[i * input_map[0].length + j][0][enum_minion.current_local_x] = Math.random() * (background_square_width - minion_width);
+                    player_minions[i * input_map[0].length + j][0][enum_minion.current_local_y] = Math.random() * (background_square_height - minion_height);
+                    player_minions[i * input_map[0].length + j][0][enum_minion.destination_x] = -1;
+                    player_minions[i * input_map[0].length + j][0][enum_minion.destination_y] = -1;
+                    player_minions[i * input_map[0].length + j][0][enum_minion.destination_local_x] = -1;
+                    player_minions[i * input_map[0].length + j][0][enum_minion.destination_local_y] = -1;
+                    player_minions[i * input_map[0].length + j][0][enum_minion.order] = enum_order.none;
+                    player_minions[i * input_map[0].length + j][1] = new Int8Array(enum_minion.size);
+                    player_minions[i * input_map[0].length + j][1][enum_minion.current_x] = j;
+                    player_minions[i * input_map[0].length + j][1][enum_minion.current_y] = i;
+                    player_minions[i * input_map[0].length + j][1][enum_minion.current_local_x] = Math.random() * (background_square_width - minion_width);
+                    player_minions[i * input_map[0].length + j][1][enum_minion.current_local_y] = Math.random() * (background_square_height - minion_height);
+                    player_minions[i * input_map[0].length + j][1][enum_minion.destination_x] = -1;
+                    player_minions[i * input_map[0].length + j][1][enum_minion.destination_y] = -1;
+                    player_minions[i * input_map[0].length + j][1][enum_minion.destination_local_x] = -1;
+                    player_minions[i * input_map[0].length + j][1][enum_minion.destination_local_y] = -1;
+                    player_minions[i * input_map[0].length + j][1][enum_minion.order] = enum_order.none;
+                    player_minions[i * input_map[0].length + j][2] = new Int8Array(enum_minion.size);
+                    player_minions[i * input_map[0].length + j][2][enum_minion.current_x] = j;
+                    player_minions[i * input_map[0].length + j][2][enum_minion.current_y] = i;
+                    player_minions[i * input_map[0].length + j][2][enum_minion.current_local_x] = Math.random() * (background_square_width - minion_width);
+                    player_minions[i * input_map[0].length + j][2][enum_minion.current_local_y] = Math.random() * (background_square_height - minion_height);
+                    player_minions[i * input_map[0].length + j][2][enum_minion.destination_x] = -1;
+                    player_minions[i * input_map[0].length + j][2][enum_minion.destination_y] = -1;
+                    player_minions[i * input_map[0].length + j][2][enum_minion.destination_local_x] = -1;
+                    player_minions[i * input_map[0].length + j][2][enum_minion.destination_local_y] = -1;
+                    player_minions[i * input_map[0].length + j][2][enum_minion.order] = enum_order.none;
                 }
                 
                 for (k = 0; k < map_conquest[i * input_map[0].length + j].length; k += 1) {
