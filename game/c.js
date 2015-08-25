@@ -45,27 +45,27 @@ var SHAPEWARS = function (document, window) {
         screen_moved = false,
         moved_x = 0,
         moved_y = 0,
-        
+
         //Minions
         minion_width = 40,
         minion_height = 30,
         minion_square,
-        
+
         enum_movement = {
             "left": 1,
             "top": 2,
             "right": 3,
-            "bottom" : 4
+            "bottom": 4
         },
-        
+
         enum_subsquare = {
             "conquered": 1,
             "free": 0
         },
-        
+
         enum_subsquare_baseHealth = 30,
         enum_minion_generationBarier = 600,
-        
+
         enum_minion = {
             "current_x": 0,
             "current_y": 1,
@@ -77,11 +77,13 @@ var SHAPEWARS = function (document, window) {
             "destination_local_y": 7,
             "order": 8,
             "health": 9,
-            "size": 10
+            "x_speed": 10,
+            "y_speed": 11,
+            "size": 12
         },
-        
-        minion_speed = 1;
-        
+
+        minion_speed = 1,
+
         enum_order = {
             "none": 0,
             "attack": 1,
@@ -122,9 +124,9 @@ var SHAPEWARS = function (document, window) {
     function helper_remapPoint(i, j, width) {
         return j * width + i;
     }
-    
+
     function helper_createDefaultMinion(x, y) {
-        var minion = new Int8Array(enum_minion.size);
+        var minion = new Float32Array(enum_minion.size);
         minion[enum_minion.current_x] = x;
         minion[enum_minion.current_y] = y;
         minion[enum_minion.current_local_x] = Math.random() * (background_square_width - minion_width);
@@ -135,9 +137,50 @@ var SHAPEWARS = function (document, window) {
         minion[enum_minion.destination_local_y] = -1;
         minion[enum_minion.order] = enum_order.none;
         minion[enum_minion.health] = 60;
+        minion[enum_minion.x_speed] = -1;
+        minion[enum_minion.y_speed] = -1;
         return minion;
     }
-    
+
+    function helper_recountMinionDestination(minion, dest_x, dest_y) {
+        var x, y, y1;
+        minion[enum_minion.destination_local_x] = dest_x;
+        minion[enum_minion.destination_local_y] = dest_y;
+        x = dest_x - minion[enum_minion.current_local_x];
+        y = dest_y - minion[enum_minion.current_local_y];
+
+        if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) > minion_speed) {
+            y1 = Math.sqrt(Math.pow(minion_speed, 2) * Math.pow(y, 2) / (Math.pow(x, 2) + Math.pow(y, 2)));
+
+            if (y > 0) {
+                minion[enum_minion.y_speed] = y1;
+            } else {
+                minion[enum_minion.y_speed] = -y1;
+                y = -y;
+            }
+
+            minion[enum_minion.x_speed] = x / y * y1;
+        }
+    }
+
+    function helper_moveMinion(minion) {
+        var x, y;
+        //Move
+        x = minion[enum_minion.destination_local_x] - minion[enum_minion.current_local_x];
+        y = minion[enum_minion.destination_local_y] - minion[enum_minion.current_local_y];
+        if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= minion_speed) {
+            minion[enum_minion.current_local_x] += x;
+            minion[enum_minion.current_local_y] += y;
+            minion[enum_minion.destination_local_x] = -1;
+            minion[enum_minion.destination_local_y] = -1;
+            minion[enum_minion.y_speed] = -1;
+            minion[enum_minion.x_speed] = -1;
+        } else {
+            minion[enum_minion.current_local_y] += minion[enum_minion.y_speed];
+            minion[enum_minion.current_local_x] += minion[enum_minion.x_speed];
+        }
+    }
+
     /*********************************************************************
      *
      *
@@ -148,22 +191,23 @@ var SHAPEWARS = function (document, window) {
 
     function logic_generateMinions() {
         var i;
-        
+
         for (i = 0; i < map.length; i += 1) {
-            if (map[i] < 8 && (map_minion[i] < map_type[i])) {
+            if (map[i] < 8 && map_minion[i] < map_type[i]) {
                 map_minion_progress[i] += 1;
                 if (map_minion_progress[i] >= enum_minion_generationBarier) {
                     map_minion_progress[i] = 0;
                     player_availableMinions[map[i]] += 1;
                     player_minions[i][map_minion[i]] = helper_createDefaultMinion(helper_mapX(i, map_width), helper_mapY(i, map_width));
+                    map_minion[i] += 1;
                 }
             }
         }
     }
-    
+
     function logic_updateMinionMovement() {
         var i, j, minion;
-        
+
         for (i = 0; i < map.length; i += 1) {
             if (map[i] === current_player) {
                 for (j = 0; j < map_type[i]; j += 1) {
@@ -171,20 +215,42 @@ var SHAPEWARS = function (document, window) {
                         break;
                     }
                     minion = player_minions[i][j];
-                    if(minion[enum_minion.destination_x] === -1) {
-                        if(minion[enum_minion.destination_local_x] === -1) {
-                            minion[enum_minion.destination_local_x] = Math.random() * (background_square_width - minion_width);
-                            minion[enum_minion.destination_local_y] = Math.random() * (background_square_height - minion_height);
+                    if (minion[enum_minion.destination_x] === -1) {
+                        if (minion[enum_minion.destination_local_x] === -1) {
+                            helper_recountMinionDestination(minion, Math.random() * (background_square_width - minion_width), Math.random() * (background_square_height - minion_height));
                         }
-                        //Move
+                        helper_moveMinion(minion);
                     } else {
-                        //Move through all of squares
+                        if (minion[enum_minion.destination_local_x] === -1) {
+                            if (minion[enum_minion.current_local_x] === background_square_width / 2 - minion_width / 2 && minion[enum_minion.current_local_y] === background_square_height / 2 - minion_height / 2) {
+                                helper_recountMinionDestination(minion, background_square_width / 2 - minion_width / 2, background_square_height / 2 - minion_height / 2);
+                            } else { //TODO: Add here check if neighbour
+                                minion[enum_minion.current_x] = minion[enum_minion.destination_x];
+                                minion[enum_minion.current_y] = minion[enum_minion.destination_y];
+                                minion[enum_minion.destination_x] = -1;
+                                minion[enum_minion.destination_y] = -1;
+                                if (map[i] === map[helper_remapPoint(minion[enum_minion.current_x], minion[enum_minion.current_y], map_width)]) {
+                                    if (i === helper_remapPoint(minion[enum_minion.current_x], minion[enum_minion.current_y], map_width)) {
+                                        //Minion returned to base
+                                        minion[enum_minion.order] = enum_order.none;
+                                    } else {
+                                        //Minion went to defend
+                                        minion[enum_minion.order] = enum_order.defend;
+                                    }
+                                } else {
+                                    //Minion went to attack
+                                    minion[enum_minion.order] = enum_order.attack;
+                                }
+                            }   
+                        } else {
+                            helper_moveMinion(minion);
+                        }
                     }
                 }
             }
         }
     }
-    
+
     /*********************************************************************
      *
      *
@@ -221,7 +287,7 @@ var SHAPEWARS = function (document, window) {
         context.fillStyle = fill;
         return context;
     }
-    
+
     function render_minions() {
         var i, j, minion, x, y;
         for (i = 0; i < map.length; i += 1) {
@@ -252,7 +318,7 @@ var SHAPEWARS = function (document, window) {
 
     function render() {
         foreground_ctx.clearRect(0, 0, width, height);
-        
+
         render_minions();
     }
 
@@ -273,7 +339,7 @@ var SHAPEWARS = function (document, window) {
             render();
         }
     }
-    
+
     /*********************************************************************
      *
      *
@@ -292,16 +358,16 @@ var SHAPEWARS = function (document, window) {
         } else if (map[helper_remapPoint(x, y + 1, map_width)] === player) {
             return enum_movement.bottom;
         }
-        
+
         return 0;
     }
-    
+
     function order_attack(player, x, y, range) {
-        
+
     }
-    
+
     function order_defence(player, x, y, range) {
-        
+
     }
 
     function order_decision(player, x, y) {
@@ -335,9 +401,10 @@ var SHAPEWARS = function (document, window) {
         context.fill();
         return square;
     }
-    
+
     function generate_minionSquare(color) {
-        var square = document.createElement('canvas'), context;
+        var square = document.createElement('canvas'),
+            context;
         square.width = minion_width;
         square.height = minion_height;
         context = square.getContext('2d');
@@ -541,24 +608,27 @@ var SHAPEWARS = function (document, window) {
             [9, 9, 9, 9, 8],
             [9, 8, 9, 9, 9],
             [9, 8, 9, 9, 9]
-        ], type_map = [
+        ],
+            type_map = [
             [0, 1, 0, 0, 5],
             [1, 5, 1, 1, 1],
             [0, 1, 0, 0, 1],
             [1, 1, 1, 1, 0],
             [1, 0, 1, 1, 1],
             [1, 0, 1, 1, 1]
-        ], input_players = [
-            {
-                "name": "claim",
-                "color": "blue",
-                "type": 0
+        ],
+            input_players = [
+                {
+                    "name": "claim",
+                    "color": "blue",
+                    "type": 0
             }, {
-                "name": "pc",
-                "color": "green",
-                "type": 2
+                    "name": "pc",
+                    "color": "green",
+                    "type": 2
             }
-        ], i, j, k;
+        ],
+            i, j, k;
 
         //TODO: dunno how normal init would look like
 
@@ -569,7 +639,7 @@ var SHAPEWARS = function (document, window) {
         player_type = new Int8Array(input_players.length);
         player_conquered = new Int8Array(input_players.length);
         player_availableMinions = new Int8Array(input_players.length);
-        
+
         //Fill player-related variables
         for (i = 0; i < input_players.length; i += 1) {
             player_id[i] = i;
@@ -606,16 +676,16 @@ var SHAPEWARS = function (document, window) {
                     map_conquest[i * input_map[0].length + j] = new Int8Array(1);
                     map_conquestProgress[i * input_map[0].length + j] = new Int8Array(1);
                 }
-                
+
                 player_minions[i * input_map[0].length + j] = new Array(type_map[i][j]);
-                
+
                 if (input_map[i][j] < 8) {
                     map_minion[i * input_map[0].length + j] = 3;
                     player_minions[i * input_map[0].length + j][0] = helper_createDefaultMinion(j, i);
                     player_minions[i * input_map[0].length + j][1] = helper_createDefaultMinion(j, i);
                     player_minions[i * input_map[0].length + j][2] = helper_createDefaultMinion(j, i);
                 }
-                
+
                 for (k = 0; k < map_conquest[i * input_map[0].length + j].length; k += 1) {
                     if (input_map[i][j] !== 8) {
                         if (input_map[i][j] === 9) {
@@ -626,7 +696,7 @@ var SHAPEWARS = function (document, window) {
                             map_conquestProgress[i * input_map[0].length + j][k] = enum_subsquare.conquered;
                         }
                     }
-                    
+
                 }
             }
         }
@@ -637,13 +707,7 @@ var SHAPEWARS = function (document, window) {
     }
 
     function mobileCheck() {
-        if (navigator.userAgent.match(/Android/i)
-                || navigator.userAgent.match(/webOS/i)
-                || navigator.userAgent.match(/iPhone/i)
-                || navigator.userAgent.match(/iPad/i)
-                || navigator.userAgent.match(/iPod/i)
-                || navigator.userAgent.match(/BlackBerry/i)
-                || navigator.userAgent.match(/Windows Phone/i)) {
+        if (navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i) || navigator.userAgent.match(/Windows Phone/i)) {
             return true;
         }
         return false;
