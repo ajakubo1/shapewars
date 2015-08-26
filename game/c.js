@@ -5,7 +5,7 @@ var SHAPEWARS = function (document, window) {
     var map, map_width, map_height,
         map_conquest, map_conquestProgress, map_minion, map_minion_progress, map_type,
         //Player-related variables
-        player_id, player_name, player_color, player_type, player_conquered, player_availableMinions, player_minions,
+        player_id, player_name, player_color, player_type, player_conquered, player_availableMinions, player_minions, player_conquest,
         //What is the player that plays the game
         current_player,
 
@@ -210,19 +210,16 @@ var SHAPEWARS = function (document, window) {
 
         for (i = 0; i < map.length; i += 1) {
             if (map[i] === current_player) {
-                for (j = 0; j < map_type[i]; j += 1) {
-                    if (player_minions[i][j] === undefined) {
-                        break;
-                    }
+                for (j = 0; j < map_minion[i]; j += 1) {
                     minion = player_minions[i][j];
                     if (minion[enum_minion.destination_x] === -1) {
-                        if (minion[enum_minion.destination_local_x] === -1) {
+                        if (minion[enum_minion.destination_local_x] === -1 && minion[enum_minion.order] === enum_order.none) {
                             helper_recountMinionDestination(minion, Math.random() * (background_square_width - minion_width), Math.random() * (background_square_height - minion_height));
                         }
                         helper_moveMinion(minion);
                     } else {
                         if (minion[enum_minion.destination_local_x] === -1) {
-                            if (minion[enum_minion.current_local_x] === background_square_width / 2 - minion_width / 2 && minion[enum_minion.current_local_y] === background_square_height / 2 - minion_height / 2) {
+                            if (minion[enum_minion.current_local_x] !== background_square_width / 2 - minion_width / 2 && minion[enum_minion.current_local_y] !== background_square_height / 2 - minion_height / 2) {
                                 helper_recountMinionDestination(minion, background_square_width / 2 - minion_width / 2, background_square_height / 2 - minion_height / 2);
                             } else { //TODO: Add here check if neighbour
                                 minion[enum_minion.current_x] = minion[enum_minion.destination_x];
@@ -296,11 +293,8 @@ var SHAPEWARS = function (document, window) {
         var i, j, minion, x, y;
         for (i = 0; i < map.length; i += 1) {
             if (map[i] < 8) {
-                for (j = 0; j < map_type[i]; j += 1) {
+                for (j = 0; j < map_minion[i]; j += 1) {
                     //TODO: when minion is deleted minion table should be rearranged...
-                    if (player_minions[i][j] === undefined) {
-                        break;
-                    }
                     minion = player_minions[i][j];
                     x = minion[enum_minion.current_x] * background_square_width + minion[enum_minion.current_local_x] + offset_x - current_x;
                     y = minion[enum_minion.current_y] * background_square_height + minion[enum_minion.current_local_y] + offset_y - current_y;
@@ -368,7 +362,28 @@ var SHAPEWARS = function (document, window) {
     }
 
     function order_attack(player, x, y, range) {
+        var square, i;
+        console.info(player, x, y, range);
+        if (range === enum_movement.left) {
+            square = helper_remapPoint(x - 1, y, map_width);
+        } else if (range === enum_movement.right) {
+            square = helper_remapPoint(x + 1, y, map_width);
+        } else if (range === enum_movement.top) {
+            square = helper_remapPoint(x, y - 1, map_width);
+        } else if (range === enum_movement.bottom) {
+            square = helper_remapPoint(x, y + 1, map_width);
+        }
+        
+        //TODO: if not found minions, go to another
 
+        for(i = 0; i < map_minion[square]; i += 1) {
+            if (player_minions[square][i][enum_minion.order] === enum_order.none) {
+                player_minions[square][i][enum_minion.destination_x] = x;
+                player_minions[square][i][enum_minion.destination_y] = y;
+                player_minions[square][i][enum_minion.order] = enum_order.moving;
+                player_availableMinions[player] -= 1;
+            }
+        }
     }
 
     function order_defence(player, x, y, range) {
@@ -377,15 +392,21 @@ var SHAPEWARS = function (document, window) {
 
     function order_decision(player, x, y) {
         if (player_availableMinions[player] > 0) {
+            console.info(player_availableMinions[player]);
             var range;
             if (map[helper_remapPoint(x, y, map_width)] !== 8 && map[helper_remapPoint(x, y, map_width)] !== player) {
                 range = inRange(player, x, y);
-                order_attack(player, x, y, range);
+                if(range !== 0) {
+                    order_attack(player, x, y, range);
+                }
             } else if (map[helper_remapPoint(x, y, map_width)] === player) {
                 range = inRange(player, x, y);
-                order_defence(player, x, y, range);
+                if(range !== 0) {
+                    order_defence(player, x, y, range);
+                }
             }
         }
+        //TODO: send message that no minions are available
     }
 
     /*********************************************************************
