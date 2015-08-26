@@ -241,7 +241,7 @@ var SHAPEWARS = function (document, window) {
                                     //Minion went to attack
                                     minion[enum_minion.order] = enum_order.attack;
                                 }
-                            }   
+                            }
                         } else {
                             helper_moveMinion(minion);
                         }
@@ -249,6 +249,10 @@ var SHAPEWARS = function (document, window) {
                 }
             }
         }
+    }
+    
+    function logic_order() {
+        
     }
 
     /*********************************************************************
@@ -327,6 +331,7 @@ var SHAPEWARS = function (document, window) {
             updateTime += tickLength;
             logic_generateMinions();
             logic_updateMinionMovement();
+            logic_order();
             count -= 1;
         }
     }
