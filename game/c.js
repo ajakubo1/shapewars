@@ -489,7 +489,7 @@ var SHAPEWARS = function (document, window) {
 
     function inRange(player, x, y) {
         if (map[helper_remapPoint(x - 1, y, map_width)] === player) {
-            return enum_movement.left;
+            return ENUM_MOVEMENT.left;
         } else if (map[helper_remapPoint(x, y - 1, map_width)] === player) {
             return enum_movement.top;
         } else if (map[helper_remapPoint(x + 1, y, map_width)] === player) {

@@ -1,22 +1,22 @@
-enum_movement = {
+var ENUM_MOVEMENT = {
     "left": 1,
     "top": 2,
     "right": 3,
     "bottom": 4
-},
+}
 
-enum_subsquare = {
+
+var ENUM_SUBSQUARE = {
     "free": 0,
     "conquered": 1,
     "in_progress": 2,
     "healing": 3,
-    "to_heal": 4
-},
+    "to_heal": 4,
 
-enum_subsquare_baseHealth = 30,
-enum_minion_generationBarier = 600,
+    "base_health": 30
+}
 
-enum_minion = {
+var ENUM_MINION = {
     "current_x": 0,
     "current_y": 1,
     "current_local_x": 2,
@@ -31,13 +31,13 @@ enum_minion = {
     "y_speed": 11,
     "current": 12,
     "current_local": 13,
-    "size": 14
-},
+    "size": 14,
+    "generation_barier": 600
+}
 
-    
-    enum_order = {
-        "none": 0,
-        "attack": 1,
-        "defend": 2,
-        "moving": 3
-    },
+var ENUM_ORDER = {
+    "none": 0,
+    "attack": 1,
+    "defend": 2,
+    "moving": 3
+}

@@ -1,0 +1,33 @@
+ENUM_MOVEMENT.left              1
+ENUM_MOVEMENT.top               2
+ENUM_MOVEMENT.right             3
+ENUM_MOVEMENT.bottom            4
+
+ENUM_SUBSQUARE.free             0
+ENUM_SUBSQUARE.conquered        1
+ENUM_SUBSQUARE.in_progress      2
+ENUM_SUBSQUARE.healing          3
+ENUM_SUBSQUARE.to_heal          4
+ENUM_SUBSQUARE.base_health      30
+
+ENUM_MINION.current_x           0
+ENUM_MINION.current_y           1
+ENUM_MINION.current_local_x     2
+ENUM_MINION.current_local_y     3
+ENUM_MINION.destination_x       4
+ENUM_MINION.destination_y       5
+ENUM_MINION.destination_local_x 6
+ENUM_MINION.destination_local_y 7
+ENUM_MINION.order               8
+ENUM_MINION.health              9
+ENUM_MINION.x_speed             10
+ENUM_MINION.y_speed             11
+ENUM_MINION.current             12
+ENUM_MINION.current_local       13
+ENUM_MINION.size                14
+ENUM_MINION.generation_barier   600
+
+ENUM_ORDER.none                 0
+ENUM_ORDER.attack               1
+ENUM_ORDER.defend               2
+ENUM_ORDER.moving               3
