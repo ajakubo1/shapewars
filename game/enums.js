@@ -32,7 +32,9 @@ var ENUM_MINION = {
     "current": 12,
     "current_local": 13,
     "size": 14,
-    "generation_barier": 600
+    
+    "generation_barier": 600,
+    "speed": 1
 }
 
 var ENUM_ORDER = {
@@ -40,4 +42,9 @@ var ENUM_ORDER = {
     "attack": 1,
     "defend": 2,
     "moving": 3
+}
+
+var ENUM_GLOBAL = {
+    width: 680,
+    height: 480
 }

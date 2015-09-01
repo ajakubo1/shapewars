@@ -19,9 +19,6 @@ var SHAPEWARS = function (document, window) {
         foreground_ctx = foreground.getContext('2d'),
         background_ctx = background.getContext('2d'),
         middleground_ctx = background.getContext('2d'),
-        //Game width/height
-        width = 680,
-        height = 480,
         //how many background fields fits into screen width/height
         screen_width = 4,
         screen_height = 3,
@@ -51,8 +48,6 @@ var SHAPEWARS = function (document, window) {
         minion_height = 30,
         minion_square,
 
-        minion_speed = 1,
-        
         square_middle_x = background_square_width / 2 - minion_width / 2,
         square_middle_y = background_square_height / 2 - minion_height / 2,
         square_minion_width = Math.floor(background_square_width / minion_width),
@@ -121,21 +116,21 @@ var SHAPEWARS = function (document, window) {
         if (x === 0.0) {
             minion[ENUM_MINION.x_speed] = 0;
             if (y > 0) {
-                minion[ENUM_MINION.y_speed] = minion_speed;
+                minion[ENUM_MINION.y_speed] = ENUM_MINION.speed;
             } else {
-                minion[ENUM_MINION.y_speed] = -minion_speed;
+                minion[ENUM_MINION.y_speed] = -ENUM_MINION.speed;
             }
             
         } else if (y === 0.0) {
             if (x > 0) {
-                minion[ENUM_MINION.x_speed] = minion_speed;
+                minion[ENUM_MINION.x_speed] = ENUM_MINION.speed;
             } else {
-                minion[ENUM_MINION.x_speed] = -minion_speed;
+                minion[ENUM_MINION.x_speed] = -ENUM_MINION.speed;
             }
             
             minion[ENUM_MINION.y_speed] = 0;
-        } else if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) > minion_speed) {
-            y1 = Math.sqrt(Math.pow(minion_speed, 2) * Math.pow(y, 2) / (Math.pow(x, 2) + Math.pow(y, 2)));
+        } else if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) > ENUM_MINION.speed) {
+            y1 = Math.sqrt(Math.pow(ENUM_MINION.speed, 2) * Math.pow(y, 2) / (Math.pow(x, 2) + Math.pow(y, 2)));
 
             if (y > 0) {
                 minion[ENUM_MINION.y_speed] = y1;
@@ -153,7 +148,7 @@ var SHAPEWARS = function (document, window) {
         //Move
         x = minion[ENUM_MINION.destination_local_x] - minion[ENUM_MINION.current_local_x];
         y = minion[ENUM_MINION.destination_local_y] - minion[ENUM_MINION.current_local_y];
-        if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= minion_speed) {
+        if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= ENUM_MINION.speed) {
             minion[ENUM_MINION.current_local_x] += x;
             minion[ENUM_MINION.current_local_y] += y;
             minion[ENUM_MINION.destination_local_x] = -1;
@@ -370,7 +365,7 @@ var SHAPEWARS = function (document, window) {
     }
 
     function redrawBackground() {
-        background_ctx.clearRect(0, 0, width, height);
+        background_ctx.clearRect(0, 0, ENUM_GLOBAL.width, ENUM_GLOBAL.height);
         render_background();
     }
 
@@ -411,7 +406,7 @@ var SHAPEWARS = function (document, window) {
      *********************************************************************/
 
     function render() {
-        foreground_ctx.clearRect(0, 0, width, height);
+        foreground_ctx.clearRect(0, 0, ENUM_GLOBAL.width, ENUM_GLOBAL.width);
 
         render_minions();
     }
@@ -563,8 +558,8 @@ var SHAPEWARS = function (document, window) {
      *********************************************************************/
 
     function recountGlobals() {
-        offset_x = (width - screen_width * background_square_width) / 2;
-        offset_y = (height - screen_height * background_square_height) / 2;
+        offset_x = (ENUM_GLOBAL.width - screen_width * background_square_width) / 2;
+        offset_y = (ENUM_GLOBAL.height - screen_height * background_square_height) / 2;
         limit_right = (map_width - screen_width + 1) * background_square_width;
         limit_bottom = (map_height - screen_height + 1) * background_square_height;
         limit_left = -1 * background_square_width;
@@ -592,16 +587,16 @@ var SHAPEWARS = function (document, window) {
     function listener_resize() {
         var windowWidth = window.innerWidth,
             windowHeight = window.innerHeight,
-            scaleX = windowWidth / width - 0.02,
-            scaleY = windowHeight / height - 0.02,
+            scaleX = windowWidth / ENUM_GLOBAL.width - 0.02,
+            scaleY = windowHeight / ENUM_GLOBAL.height - 0.02,
             left,
             top;
         scale = Math.min(scaleX, scaleY);
         if (scale === scaleX) {
             left = "0px";
-            top = ((windowHeight - height * scale) / 2) + "px";
+            top = ((windowHeight - ENUM_GLOBAL.height * scale) / 2) + "px";
         } else {
-            left = ((windowWidth - width * scale) / 2) + "px";
+            left = ((windowWidth - ENUM_GLOBAL.width * scale) / 2) + "px";
             top = "0px";
         }
         background.style.transformOrigin = "0 0"; //scale from top left
@@ -843,12 +838,12 @@ var SHAPEWARS = function (document, window) {
     function start() {
         init();
         //Setting up width/height of canvas elements
-        foreground.width = width;
-        foreground.height = height;
-        middleground.width = width;
-        middleground.height = height;
-        background.width = width;
-        background.height = height;
+        foreground.width = ENUM_GLOBAL.width;
+        foreground.height = ENUM_GLOBAL.height;
+        middleground.width = ENUM_GLOBAL.width;
+        middleground.height = ENUM_GLOBAL.height;
+        background.width = ENUM_GLOBAL.width;
+        background.height = ENUM_GLOBAL.height;
 
         recountGlobals();
         listener_resize();
