@@ -219,7 +219,7 @@ var SHAPEWARS = function (document, window) {
                                         minion[ENUM_MINION.order] = ENUM_ORDER.none;
                                     } else {
                                         //Minion went to defend
-                                        minion[ENUM_MINION.order] = ENUM_ORDER.defend;
+                                        minion[ENUM_MINION.order] = ENUM_ORDER.attack;
                                     }
                                 } else {
                                     //Minion went to attack
@@ -248,6 +248,20 @@ var SHAPEWARS = function (document, window) {
         for (i = 0; i < map_conquestProgress[square].length; i += 1) {
             if (map_conquestProgress[square][i] === ENUM_SUBSQUARE.to_heal && map_conquestPlayer[square][i] === player && map_conquestHealth[square][i] < ENUM_SUBSQUARE.base_health) {
                 map_conquestProgress[square][i] = ENUM_SUBSQUARE.healing;
+                return i;
+            }
+        }
+
+        for (i = 0; i < map_conquestProgress[square].length; i += 1) {
+            if (map_conquestProgress[square][i] === ENUM_SUBSQUARE.to_heal && map_conquestPlayer[square][i] !== player && map_conquestHealth[square][i] < ENUM_SUBSQUARE.base_health) {
+                map_conquestProgress[square][i] = ENUM_SUBSQUARE.in_progress;
+                return i;
+            }
+        }
+
+        for (i = 0; i < map_conquestProgress[square].length; i += 1) {
+            if (map_conquestProgress[square][i] === ENUM_SUBSQUARE.conquered && map_conquestPlayer[square][i] !== player && map_conquestHealth[square][i] < ENUM_SUBSQUARE.base_health) {
+                map_conquestProgress[square][i] = ENUM_SUBSQUARE.in_progress;
                 return i;
             }
         }
@@ -290,12 +304,21 @@ var SHAPEWARS = function (document, window) {
 
                                 if (minion[ENUM_MINION.health] === 0) {
                                     to_delete.push(j);
-                                    map_conquestProgress[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] = ENUM_SUBSQUARE.free;
+                                    if (map[minion[ENUM_MINION.current]] === 9) {
+                                        map_conquestProgress[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] = ENUM_SUBSQUARE.free;
+                                    } else {
+                                        map_conquestProgress[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] = ENUM_SUBSQUARE.to_heal;
+                                    }
                                 }
 
                                 if (map_conquestHealth[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] === 0) {
                                     map_conquestPlayer[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] = map[i];
-                                    map_conquestProgress[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] = ENUM_SUBSQUARE.healing;
+                                    if (minion[ENUM_MINION.health] === 0) {
+                                        map_conquestProgress[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] = ENUM_SUBSQUARE.to_heal;
+                                    } else {
+                                        map_conquestProgress[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] = ENUM_SUBSQUARE.healing;
+                                    }
+
                                 }
                             } else if (map_conquestProgress[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] === ENUM_SUBSQUARE.healing) {
                                 minion[ENUM_MINION.health] -= 1;
@@ -335,7 +358,7 @@ var SHAPEWARS = function (document, window) {
         var i, j, conquered;
 
         for (i = 0; i < map_conquest.length; i += 1) {
-            
+
             if (map_conquest[i] === 1 && map[i] !== player) {
                 conquered = true;
                 for (j = 0; j < map_conquestPlayer[i].length; j += 1) {
@@ -419,7 +442,11 @@ var SHAPEWARS = function (document, window) {
         for (i = 0; i < map_conquest.length; i += 1) {
             if (map_conquest[i] !== 0) {
                 for (j = 0; j < map_conquestPlayer[i].length; j += 1) {
-
+                    if(map_conquestPlayer[i][j] !== 9) {
+                        render_image(helper_mapX(i, map_width) * background_square_width + helper_mapX(j, square_minion_width) * minion_width,
+                            helper_mapY(i, map_width) * background_square_height + helper_mapY(j, square_minion_width) * minion_height,
+                            progress_square[map_conquestPlayer[i][j]], background_ctx);
+                    }
                 }
             }
         }
@@ -436,6 +463,7 @@ var SHAPEWARS = function (document, window) {
     function render() {
         foreground_ctx.clearRect(0, 0, ENUM_GLOBAL.width, ENUM_GLOBAL.width);
 
+        render_progress();
         render_minions();
     }
 
@@ -507,7 +535,15 @@ var SHAPEWARS = function (document, window) {
     }
 
     function order_defence(player, x, y, range) {
-
+        var i, square = helper_remapPoint(x, y, map_width);
+        for (i = 0; i < map_conquestProgress[square].length; i += 1) {
+            if((map_conquestPlayer[square][i] === player && map_conquestHealth[square][i] < ENUM_SUBSQUARE.base_health) ||
+                map_conquestPlayer[square][i] !== player) {
+                order_attack(player, x, y, range);
+                map_conquest[square] = 0;
+                break;
+            }
+        }
     }
 
     function order_decision(player, x, y) {
@@ -553,7 +589,7 @@ var SHAPEWARS = function (document, window) {
         square.width = minion_width;
         square.height = minion_height;
         context = square.getContext('2d');
-        context = render_rect(context, minion_width / 4, minion_height / 4, minion_width / 2, minion_height / 2, "white", color);
+        context = render_rect(context, minion_width / 4 - 2, minion_height / 4 - 2, minion_width / 2, minion_height / 2, "white", color);
         context.shadowBlur = 10;
         context.shadowColor = "white";
         context.globalAlpha = 1;
@@ -562,12 +598,12 @@ var SHAPEWARS = function (document, window) {
     }
 
     function generate_progressSquare(fill) {
-        var square = document.createElement(s_canvas),
+        var square = document.createElement('canvas'),
             context;
-        square.width = fore_minion_width;
-        square.height = fore_minion_height;
+        square.width = minion_width;
+        square.height = minion_height;
         context = square.getContext('2d');
-        context = render_rect(context, 0, 0, minion_width, minion_height, fill, fill);
+        context = render_rect(context, 2, 2, minion_width - 4, minion_height - 4, fill, fill);
         context.fill();
         return square;
     }
