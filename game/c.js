@@ -19,6 +19,7 @@ var SHAPEWARS = function (document, window) {
         foreground_ctx = foreground.getContext('2d'),
         background_ctx = background.getContext('2d'),
         middleground_ctx = background.getContext('2d'),
+
         //how many background fields fits into screen width/height
         screen_width = 4,
         screen_height = 3,
