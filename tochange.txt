@@ -22,8 +22,8 @@ ENUM_MINION.order               8
 ENUM_MINION.health              9
 ENUM_MINION.x_speed             10
 ENUM_MINION.y_speed             11
-ENUM_MINION.current             12
 ENUM_MINION.current_local       13
+ENUM_MINION.current             12
 ENUM_MINION.size                14
 ENUM_MINION.generation_barier   600
 

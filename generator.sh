@@ -39,7 +39,19 @@ mkdir "${BUILD_DIR}/${PROJECT_NAME}/game"
 #minify js and css files
 java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type css "${PROJECT_DIR}/game/s.css" > "${BUILD_DIR}/${PROJECT_NAME}/game/s.css"
 
-java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/c.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/c.js"
+cp "${PROJECT_DIR}/game/c.js" "${PROJECT_DIR}/game/temp_c.js"
+
+cat "${PROJECT_DIR}/tochange.txt" | while read line
+do
+    string=`echo "${line}" | awk '{print $1}'`
+    toReplace=`echo "${line}" | awk '{print $2}'`
+    sed -i "s/${string}/${toReplace}/g" "${PROJECT_DIR}/game/temp_c.js"
+done
+
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/temp_c.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/c.js"
+
+rm "${PROJECT_DIR}/game/temp_c.js"
+
 java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/s.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/s.js"
 cat "${PROJECT_DIR}/game.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game.json"
 cat "${PROJECT_DIR}/game/package.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game/package.json"
