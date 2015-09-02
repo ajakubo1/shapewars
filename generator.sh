@@ -52,6 +52,8 @@ java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/
 
 rm "${PROJECT_DIR}/game/temp_c.js"
 
+java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/TinyMusic.min.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/TinyMusic.min.js"
+
 java -jar "${COMPRESSOR_HOME}/${COMPRESSOR_YUI}" --type js "${PROJECT_DIR}/game/s.js" > "${BUILD_DIR}/${PROJECT_NAME}/game/s.js"
 cat "${PROJECT_DIR}/game.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game.json"
 cat "${PROJECT_DIR}/game/package.json" | json-minify > "${BUILD_DIR}/${PROJECT_NAME}/game/package.json"
