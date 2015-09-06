@@ -59,7 +59,9 @@ var SHAPEWARS = function (document, window) {
         conquest_squares_count,
         send_queue = [],
         attack_target,
-        master;
+        master,
+        minion_stats_empty,
+        minion_stats_filled;
     //TODO: attack_responce: OK/NOK/UNCONFIRMED;
 
 
@@ -206,6 +208,7 @@ var SHAPEWARS = function (document, window) {
                         }
 
                         //TODO: NETWORK - notify others that minion is created for specific player (if master)
+                        redrawBackground();
                     }
                 }
             }
@@ -492,7 +495,7 @@ var SHAPEWARS = function (document, window) {
     }
 
     function render_background() {
-        var i;
+        var i, j;
         for (i = 0; i < map.length; i += 1) {
             if (map[i] !== 8) {
                 if(map_conquest[i] > 0) {
@@ -503,6 +506,18 @@ var SHAPEWARS = function (document, window) {
                 render_image(helper_mapX(i, map_width) * background_square_width,
                     helper_mapY(i, map_width) * background_square_height,
                     background_square[map[i]], background_ctx);
+
+                for(j = 0 ; j < map_type[i]; j += 1) {
+                    if(j < map_minion[i]) {
+                        render_image(helper_mapX(i, map_width) * background_square_width + 12 * j + 5,
+                            helper_mapY(i, map_width) * background_square_height + background_square_height - 15,
+                            minion_stats_filled, background_ctx);
+                    } else {
+                        render_image(helper_mapX(i, map_width) * background_square_width + 12 * j + 5,
+                            helper_mapY(i, map_width) * background_square_height + background_square_height - 15,
+                            minion_stats_empty, background_ctx);
+                    }
+                }
             }
         }
     }
@@ -894,6 +909,20 @@ var SHAPEWARS = function (document, window) {
         return square;
     }
 
+    function generate_minionStatSquare(fill, border) {
+        var square = document.createElement('canvas'),
+            context;
+        square.width = 10;
+        square.height = 10;
+        context = square.getContext('2d');
+        context = render_rect(context, 1, 1, 8 , 8 , border, fill);
+        context.shadowBlur = 2;
+        context.shadowColor = "white";
+        context.stroke();
+        context.fill();
+        return square;
+    }
+
     function generate() {
         var i;
         background_square = new Array(10);
@@ -902,6 +931,9 @@ var SHAPEWARS = function (document, window) {
         attack_indicator = generate_attackSquare("red", "red");
         //attack_indicator.width = background_square_width + 10;
         //attack_indicator.height = background_square_height + 10;
+
+        minion_stats_filled = generate_minionStatSquare("black", "white");
+        minion_stats_empty = generate_minionStatSquare("white", "white");
         for (i = 0; i < 10; i += 1) {
             background_square[i] = undefined;
         }
