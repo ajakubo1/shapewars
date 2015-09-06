@@ -1,31 +1,17 @@
+<!DOCTYPE html>
 <html>
-
-<head>
-      <title>My Game</title>
-      <!-- The socket.io client lib is for free. ;-) -->
-      <script src="/socket.io/socket.io.js"></script>
-</head>
-
-<body>
-      <h1>Shapewars</h1>
-      <div id="registration">
-            Name:
-            <input type="text" id="username"> Players:
-            <select id="players">
-                  <option value="2">2</option>
-                  <option value="4">4</option>
-            </select>
-            Mode:
-            <select id="mode">
-                  <option value="0">Single player</option>
-                  <option value="1">Multiplayer</option>
-            </select>
-            <button id="register">Register</button>
-      </div>
-      <ul id="log"></ul>
-      <script>
-      </script>
-      <script src="client.js"></script>
-</body>
-
+    <head lang="en">
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <title>Shapewars</title>
+        <link rel="stylesheet" href="s.css"/>
+        <script src="/socket.io/socket.io.js"></script>
+    </head>
+    <body>
+        <canvas id="b"></canvas>
+        <canvas id="m"></canvas>
+        <canvas id="f"></canvas>
+        <script src="enums.js"></script>
+        <script src="c.js"></script>
+    </body>
 </html>

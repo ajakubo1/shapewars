@@ -53,11 +53,13 @@ var SHAPEWARS = function (document, window) {
         square_middle_y = background_square_height / 2 - minion_height / 2,
         square_minion_width = Math.floor(background_square_width / minion_width),
         square_minion_height = Math.floor(background_square_height / minion_height),
-        
+
         attack_indicator,
-        
+
         conquest_squares_count,
-        send_queue = []
+        send_queue = [],
+        attack_target,
+        master;
     //TODO: attack_responce: OK/NOK/UNCONFIRMED;
 
 
@@ -91,7 +93,12 @@ var SHAPEWARS = function (document, window) {
     }
 
     function helper_remapPoint(i, j, width) {
-        return j * width + i;
+        if(i < map_width) {
+            return j * width + i;
+        } else {
+            return -1;
+        }
+
     }
 
     function helper_createDefaultMinion(x, y) {
@@ -152,7 +159,6 @@ var SHAPEWARS = function (document, window) {
 
     function helper_moveMinion(minion) {
         var x, y;
-        //Move
         x = minion[ENUM_MINION.destination_local_x] - minion[ENUM_MINION.current_local_x];
         y = minion[ENUM_MINION.destination_local_y] - minion[ENUM_MINION.current_local_y];
         if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= ENUM_MINION.speed) {
@@ -167,7 +173,7 @@ var SHAPEWARS = function (document, window) {
             minion[ENUM_MINION.current_local_x] += minion[ENUM_MINION.x_speed];
         }
     }
-    
+
     function redrawBackground() {
         background_ctx.clearRect(0, 0, ENUM_GLOBAL.width, ENUM_GLOBAL.height);
         render_background();
@@ -185,7 +191,8 @@ var SHAPEWARS = function (document, window) {
         var i;
 
         for (i = 0; i < map.length; i += 1) {
-            if (map[i] === current_player && map_minion[i] < map_type[i]) {
+            if ((map[i] === current_player && map_minion[i] < map_type[i])
+                || (master && player_type[map[i]] === 2 && map_minion[i] < map_type[i])) {
                 if(map_conquest[i] === 0) {
                     map_minion_progress[i] += 1;
                     if (map_minion_progress[i] >= ENUM_MINION.generation_barier) {
@@ -193,14 +200,15 @@ var SHAPEWARS = function (document, window) {
                         player_availableMinions[map[i]] += 1;
                         player_minions[i][map_minion[i]] = helper_createDefaultMinion(helper_mapX(i, map_width), helper_mapY(i, map_width));
                         map_minion[i] += 1;
-                        
-                        //TODO: NETWORK - notify others that minion is created
+
+                        if(master && player_type[map[i]] === 2) {
+                            order_attack(map[i], helper_mapX(attack_target[map[i]], map_width), helper_mapY(attack_target[map[i]], map_width), 1);
+                        }
+
+                        //TODO: NETWORK - notify others that minion is created for specific player (if master)
                     }
                 }
             }
-            
-            //TODO: if master, generate minions for all of CPU-s
-            //TODO: then send this information to other players
         }
     }
 
@@ -208,8 +216,15 @@ var SHAPEWARS = function (document, window) {
         var i, j, minion;
 
         for (i = 0; i < map.length; i += 1) {
-            //TODO - think about it, so that destination calculations would be made only by current players (and for cpu zero player)
-            if (map[i] === current_player) {
+
+            for (j = 0; j < map_minion[i]; j += 1) {
+                minion = player_minions[i][j];
+                if (minion[ENUM_MINION.destination_local_x] !== -1) {
+                    helper_moveMinion(minion);
+                }
+            }
+
+            if ((map[i] === current_player) || (master && player_type[map[i]] === 2)) {
                 for (j = 0; j < map_minion[i]; j += 1) {
                     minion = player_minions[i][j];
                     if (minion[ENUM_MINION.destination_x] === -1) {
@@ -219,11 +234,7 @@ var SHAPEWARS = function (document, window) {
                                 //TODO: NETWORK - notify others about minion destination change
                                 //TODO: NETWORK - notify others about minion current location
                             }
-                        } else {
-                            helper_moveMinion(minion);
-                            //TODO change, so that browsers would move all of minions
                         }
-
                     } else {
                         if (minion[ENUM_MINION.destination_local_x] === -1) {
                             if (minion[ENUM_MINION.current_local_x] !== square_middle_x && minion[ENUM_MINION.current_local_y] !== square_middle_y) {
@@ -251,9 +262,6 @@ var SHAPEWARS = function (document, window) {
                                 }
                                 //TODO: NETWORK - notify others about minion current location (change in location)
                             }
-                        } else {
-                            helper_moveMinion(minion);
-                            //TODO change, so that browsers would move all of minions
                         }
                     }
                 }
@@ -315,7 +323,7 @@ var SHAPEWARS = function (document, window) {
             minion[ENUM_MINION.order] = ENUM_ORDER.moving;
             helper_recountMinionDestination(minion, square_middle_x, square_middle_y);
         }
-        
+
         //TODO: NETWORK - notify others about minion destination change
         //TODO: NETWORK - notify others about minion current location
     }
@@ -325,7 +333,7 @@ var SHAPEWARS = function (document, window) {
 
         for (i = 0; i < map.length; i += 1) {
             //TODO: if master, process attacks for all of cpu-s
-            if (map[i] === current_player) {
+            if (map[i] === current_player || (master && player_type[map[i]] === 2)) {
                 to_delete = [];
                 for (j = 0; j < map_minion[i]; j += 1) {
                     minion = player_minions[i][j];
@@ -342,8 +350,6 @@ var SHAPEWARS = function (document, window) {
                                     map_conquest[minion[ENUM_MINION.current]] = 1;
                                     //TODO: NETWORK - notify others that square is still attacked
                                 }
-                                
-                                redrawBackground();
 
                                 if (minion[ENUM_MINION.health] === 0) {
                                     to_delete.push(j);
@@ -368,8 +374,7 @@ var SHAPEWARS = function (document, window) {
                                 if(map_conquest[minion[ENUM_MINION.current]] > 0) {
                                     map_conquest[minion[ENUM_MINION.current]] = 1;
                                 }
-                                redrawBackground();
-                                
+
                                 minion[ENUM_MINION.health] -= 1;
                                 map_conquestHealth[minion[ENUM_MINION.current]][minion[ENUM_MINION.current_local]] += 1;
 
@@ -411,36 +416,51 @@ var SHAPEWARS = function (document, window) {
 
             if (map_conquest[i] > 0 && map[i] !== player) {
                 conquered = true;
-                for (j = 0; j < map_conquestProgress; j += 1) {
+                for (j = 0; j < conquest_squares_count; j += 1) {
                     if (map_conquestPlayer[i][j] !== player) {
                         conquered = false;
                         break;
                     }
                 }
-                
+
                 //TODO serving AI
                 map_conquest[i] += 1;
-                
-                if (map_conquest[i] > 600) {
-                    map_conquest[i] = 0;
-                    redrawBackground();
-                }
-                
+
                 if (conquered) {
+                    console.info('conquered?')
+                    if(player_type[player] === 2) {
+                        attack_target[player] = -1;
+                    }
                     map_conquest[i] = -1;
                     map[i] = player;
                     redrawBackground();
                 }
+
+                if (map_conquest[i] > 600) {
+                    conquered = true;
+                    for (j = 0; j < conquest_squares_count; j += 1) {
+                        if (map_conquestHealth[i][j] < ENUM_SUBSQUARE.base_health) {
+                            conquered = false;
+                            break;
+                        }
+                    }
+                    if (conquered) {
+                        map_conquest[i] = 0;
+                    } else {
+                        map_conquest[i] = -1;
+                    }
+                    redrawBackground();
+                }
             } else if(map_conquest[i] > 0) {
                 map_conquest[i] += 1;
-                
+
                 if (map_conquest[i] > 600) {
                     map_conquest[i] = 0;
                     redrawBackground();
                 }
             } else if(map_conquest[i] === -1) {
                 conquered = true;
-                for (j = 0; j < map_conquestProgress; j += 1) {
+                for (j = 0; j < conquest_squares_count; j += 1) {
                     if (map_conquestHealth[i][j] < ENUM_SUBSQUARE.base_health) {
                         conquered = false;
                         break;
@@ -448,6 +468,7 @@ var SHAPEWARS = function (document, window) {
                 }
                 if (conquered) {
                     map_conquest[i] = 0;
+                    redrawBackground();
                 }
             }
         }
@@ -478,12 +499,10 @@ var SHAPEWARS = function (document, window) {
                     render_image(helper_mapX(i, map_width) * background_square_width - 5,
                         helper_mapY(i, map_width) * background_square_height - 5,
                         attack_indicator, background_ctx);
-                } else {
-                    render_image(helper_mapX(i, map_width) * background_square_width,
-                        helper_mapY(i, map_width) * background_square_height,
-                        background_square[map[i]], background_ctx);
                 }
-                
+                render_image(helper_mapX(i, map_width) * background_square_width,
+                    helper_mapY(i, map_width) * background_square_height,
+                    background_square[map[i]], background_ctx);
             }
         }
     }
@@ -523,8 +542,70 @@ var SHAPEWARS = function (document, window) {
                         render_image(helper_mapX(i, map_width) * background_square_width + helper_mapX(j, square_minion_width) * minion_width,
                             helper_mapY(i, map_width) * background_square_height + helper_mapY(j, square_minion_width) * minion_height,
                             progress_square[map_conquestPlayer[i][j]], background_ctx);
+
+                        background_ctx.font = "20px Arial";
+                        background_ctx.fillText(map_conquestHealth[i][j], helper_mapX(i, map_width) * background_square_width + helper_mapX(j, square_minion_width) * minion_width + offset_x - current_x + 5, helper_mapY(i, map_width) * background_square_height + helper_mapY(j, square_minion_width) * minion_height + offset_y - current_y + 15);
                     }
                 }
+            }
+        }
+    }
+
+    /*********************************************************************
+     *
+     *
+     *  SECTION: AI
+     *
+     *
+     *********************************************************************/
+
+    function ai_attack(player) {
+        if (player_availableMinions[player] > 0) {
+            var toAttack = [], attackRegions = 0, i, x ,y;
+            for (i = 0; i < map.length; i += 1) {
+                x = helper_mapX(i, map_width);
+                y = helper_mapY(i, map_width);
+                if(map[i] === player) {
+                    if (hasMinions(i)) {
+                        attackRegions += 1;
+                    }
+
+                    if(map[helper_remapPoint(x - 1, y, map_width)] === 9) {
+                        toAttack.push(helper_remapPoint(x - 1, y, map_width));
+                    }
+                    if(map[helper_remapPoint(x + 1, y, map_width)] === 9) {
+                        toAttack.push(helper_remapPoint(x + 1, y, map_width));
+                    }
+                    if(map[helper_remapPoint(x, y - 1, map_width)] === 9) {
+                        toAttack.push(helper_remapPoint(x, y - 1, map_width));
+                    }
+                    if(map[helper_remapPoint(x, y + 1, map_width)] === 9) {
+                        toAttack.push(helper_remapPoint(x, y + 1, map_width));
+                    }
+                }
+            }
+
+            console.info(toAttack, attackRegions)
+
+            if(toAttack.length > 0) {
+                attack_target[player] = toAttack[Math.floor(Math.random() * toAttack.length)];
+                console.info(attack_target[player])
+                for(i = 0; i < attackRegions; i += 1) {
+                    order_attack(player, helper_mapX(attack_target[player], map_width), helper_mapY(attack_target[player], map_width), 1);
+                }
+            }
+        }
+    }
+
+    function ai_decisions() {
+        var i;
+        for(i = 0; i < player_type.length; i += 1) {
+            if (player_type[i] === 2) {
+                if (attack_target[i] === -1) {
+                    ai_attack(i);
+                }
+
+                logic_recountConquest(i);
             }
         }
     }
@@ -551,6 +632,9 @@ var SHAPEWARS = function (document, window) {
             logic_updateMinionMovement();
             logic_order();
             logic_recountConquest(current_player);
+            if (master) {
+                ai_decisions();
+            }
             count -= 1;
         }
     }
@@ -586,21 +670,129 @@ var SHAPEWARS = function (document, window) {
         return 0;
     }
 
-    function order_attack(player, x, y, range) {
-        var square, i;
-        if (range === ENUM_MOVEMENT.left) {
-            square = helper_remapPoint(x - 1, y, map_width);
-        } else if (range === ENUM_MOVEMENT.right) {
-            square = helper_remapPoint(x + 1, y, map_width);
-        } else if (range === ENUM_MOVEMENT.top) {
-            square = helper_remapPoint(x, y - 1, map_width);
-        } else if (range === ENUM_MOVEMENT.bottom) {
-            square = helper_remapPoint(x, y + 1, map_width);
+    function hasMinions(square) {
+        var i;
+
+        for (i = 0; i < map_minion[square]; i += 1) {
+            if (player_minions[square][i][ENUM_MINION.order] === ENUM_ORDER.none) {
+                return true;
+            }
         }
 
-        //TODO: if not found minions, go to another
+        return false;
+    }
+
+    function countDistance(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+    }
+
+    function findNeighbour(player, x, y, done) {
+        var search, searchlist = [], i, markDone;
+
+        //LEFT
+        search = helper_remapPoint(x - 1, y, map_width);
+        if(map[search] === player) {
+            if(hasMinions(search)) {
+                return search;
+            } else {
+                markDone = true;
+                for (i = 0; i < done.length; i += 1) {
+                    if(search === done[i]) {
+                        markDone = false
+                        break;
+                    }
+                }
+
+                if(markDone) {
+                    done.push(search);
+                    searchlist.push([x - 1, y]);
+                }
+            }
+        }
+        //TOP
+        search = helper_remapPoint(x, y - 1, map_width);
+        if(map[search] === player) {
+            if(hasMinions(search)) {
+                return search;
+            } else {
+                markDone = true;
+                for (i = 0; i < done.length; i += 1) {
+                    if(search === done[i]) {
+                        markDone = false
+                        break;
+                    }
+                }
+
+                if(markDone) {
+                    done.push(search);
+                    searchlist.push([x, y - 1]);
+                }
+            }
+        }
+        //RIGHT
+        search = helper_remapPoint(x + 1, y, map_width);
+        if(map[search] === player) {
+            if(hasMinions(search)) {
+                return search;
+            } else {
+                markDone = true;
+                for (i = 0; i < done.length; i += 1) {
+                    if(search === done[i]) {
+                        markDone = false
+                        break;
+                    }
+                }
+
+                if(markDone) {
+                    done.push(search);
+                    searchlist.push([x + 1, y]);
+                }
+            }
+        }
+        //BOTTOM
+        search = helper_remapPoint(x, y + 1, map_width);
+        if(map[search] === player) {
+            if(hasMinions(search)) {
+                return search;
+            } else {
+                markDone = true;
+                for (i = 0; i < done.length; i += 1) {
+                    if(search === done[i]) {
+                        markDone = false
+                        break;
+                    }
+                }
+
+                if(markDone) {
+                    done.push(search);
+                    searchlist.push([x, y + 1]);
+                }
+            }
+        }
+
+        search = null;
+        for (i = 0; i < searchlist.length; i += 1) {
+            markDone = findNeighbour(player, searchlist[i][0], searchlist[i][1], done);
+
+            if(search === null) {
+                search = markDone;
+            } else if (markDone !== null) {
+                if(countDistance(x, y, helper_mapX(search, map_width), helper_mapY(search, map_width)) > countDistance(x, y, searchlist[i][0], searchlist[i][1])) {
+                    search = markDone;
+                }
+            }
+        }
+
+        return search;
+    }
+
+    function order_attack(player, x, y, range) {
+        var square, i;
+
+        square = findNeighbour(player, x, y, []);
+
         map_conquest[helper_remapPoint(x, y, map_width)] = 1;
-        redrawBackground()
+        redrawBackground();
 
         for (i = 0; i < map_minion[square]; i += 1) {
             if (player_minions[square][i][ENUM_MINION.order] === ENUM_ORDER.none) {
@@ -662,6 +854,21 @@ var SHAPEWARS = function (document, window) {
         return square;
     }
 
+    function generate_attackSquare(fill, border) {
+        var square = document.createElement('canvas'),
+            context;
+        square.width = background_square_width + 10;
+        square.height = background_square_height + 10;
+        context = square.getContext('2d');
+        context = render_rect(context, 5, 5, background_square_width , background_square_height , border, fill, fill);
+        context.shadowBlur = 20;
+        context.shadowColor = "red";
+        context.globalAlpha = 0.7
+        context.stroke();
+        context.fill();
+        return square;
+    }
+
     function generate_minionSquare(color) {
         var square = document.createElement('canvas'),
             context;
@@ -692,7 +899,7 @@ var SHAPEWARS = function (document, window) {
         background_square = new Array(10);
         minion_square = new Array(player_id.length);
         progress_square = new Array(player_id.length);
-        attack_indicator = generate_backgroundSquare("red", "red");
+        attack_indicator = generate_attackSquare("red", "red");
         //attack_indicator.width = background_square_width + 10;
         //attack_indicator.height = background_square_height + 10;
         for (i = 0; i < 10; i += 1) {
@@ -914,6 +1121,7 @@ var SHAPEWARS = function (document, window) {
         player_type = new Int8Array(input_players.length);
         player_conquered = new Int8Array(input_players.length);
         player_availableMinions = new Int8Array(input_players.length);
+        attack_target = new Int16Array(input_players.length);
         map_conquest = new Int16Array(input_map.length * input_map[0].length);
 
         //Fill player-related variables
@@ -927,6 +1135,18 @@ var SHAPEWARS = function (document, window) {
             }
             player_conquered[i] = 1;
             player_availableMinions[i] = 3;
+            attack_target[i] = -1;
+        }
+
+        master = false;
+
+        if(current_player === 0) {
+            for (i = 1; i < input_players.length; i += 1) {
+                if (player_type[i] === 2) { // CPU
+                    master = true;
+                    break;
+                }
+            }
         }
 
         //Initialize map
