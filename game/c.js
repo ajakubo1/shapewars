@@ -60,8 +60,10 @@ var SHAPEWARS = function (document, window) {
         send_queue = [],
         attack_target,
         master,
-        minion_stats_empty,
-        minion_stats_filled;
+        graphics_square_empty,
+        graphics_square_filled,
+        graphics_health_full,
+        redraw_background_indicator;
     //TODO: attack_responce: OK/NOK/UNCONFIRMED;
 
 
@@ -208,7 +210,7 @@ var SHAPEWARS = function (document, window) {
                         }
 
                         //TODO: NETWORK - notify others that minion is created for specific player (if master)
-                        redrawBackground();
+                        redraw_background_indicator = true;
                     }
                 }
             }
@@ -436,7 +438,7 @@ var SHAPEWARS = function (document, window) {
                     }
                     map_conquest[i] = -1;
                     map[i] = player;
-                    redrawBackground();
+                    redraw_background_indicator = true;
                 }
 
                 if (map_conquest[i] > 600) {
@@ -452,14 +454,14 @@ var SHAPEWARS = function (document, window) {
                     } else {
                         map_conquest[i] = -1;
                     }
-                    redrawBackground();
+                    redraw_background_indicator = true;
                 }
             } else if(map_conquest[i] > 0) {
                 map_conquest[i] += 1;
 
                 if (map_conquest[i] > 600) {
                     map_conquest[i] = 0;
-                    redrawBackground();
+                    redraw_background_indicator = true;
                 }
             } else if(map_conquest[i] === -1) {
                 conquered = true;
@@ -471,7 +473,7 @@ var SHAPEWARS = function (document, window) {
                 }
                 if (conquered) {
                     map_conquest[i] = 0;
-                    redrawBackground();
+                    redraw_background_indicator = true;
                 }
             }
         }
@@ -511,11 +513,11 @@ var SHAPEWARS = function (document, window) {
                     if(j < map_minion[i]) {
                         render_image(helper_mapX(i, map_width) * background_square_width + 12 * j + 5,
                             helper_mapY(i, map_width) * background_square_height + background_square_height - 15,
-                            minion_stats_filled, background_ctx);
+                            graphics_square_filled, background_ctx);
                     } else {
                         render_image(helper_mapX(i, map_width) * background_square_width + 12 * j + 5,
                             helper_mapY(i, map_width) * background_square_height + background_square_height - 15,
-                            minion_stats_empty, background_ctx);
+                            graphics_square_empty, background_ctx);
                     }
                 }
             }
@@ -534,7 +536,7 @@ var SHAPEWARS = function (document, window) {
     }
 
     function render_minions() {
-        var i, j, minion, x, y;
+        var i, j, minion, k, max;
         for (i = 0; i < map.length; i += 1) {
             if (map[i] < 8) {
                 for (j = 0; j < map_minion[i]; j += 1) {
@@ -542,6 +544,14 @@ var SHAPEWARS = function (document, window) {
                     render_image(minion[ENUM_MINION.current_x] * background_square_width + minion[ENUM_MINION.current_local_x],
                         minion[ENUM_MINION.current_y] * background_square_height + minion[ENUM_MINION.current_local_y],
                         minion_square[map[i]], foreground_ctx);
+
+                    max = Math.round(minion[ENUM_MINION.health] / 250 * 6);
+
+                    for(k = 0; k < max; k += 1) {
+                        render_image(minion[ENUM_MINION.current_x] * background_square_width + minion[ENUM_MINION.current_local_x] + k * 4 + 7,
+                            minion[ENUM_MINION.current_y] * background_square_height + minion[ENUM_MINION.current_local_y] + 2,
+                            graphics_health_full, foreground_ctx);
+                    }
                 }
             }
         }
@@ -600,8 +610,6 @@ var SHAPEWARS = function (document, window) {
                 }
             }
 
-            console.info(toAttack, attackRegions)
-
             if(toAttack.length > 0) {
                 attack_target[player] = toAttack[Math.floor(Math.random() * toAttack.length)];
                 console.info(attack_target[player])
@@ -638,9 +646,14 @@ var SHAPEWARS = function (document, window) {
 
         render_progress();
         render_minions();
+
+        if(redraw_background_indicator) {
+            redrawBackground();
+        }
     }
 
     function logic(count) {
+        redraw_background_indicator = false;
         while (count) {
             updateTime += tickLength;
             logic_generateMinions();
@@ -909,15 +922,16 @@ var SHAPEWARS = function (document, window) {
         return square;
     }
 
-    function generate_minionStatSquare(fill, border) {
+    function generate_minionStatSquare(x, y, width, height, fill, border, alpha) {
         var square = document.createElement('canvas'),
             context;
-        square.width = 10;
-        square.height = 10;
+        square.width = width;
+        square.height = height;
         context = square.getContext('2d');
-        context = render_rect(context, 1, 1, 8 , 8 , border, fill);
+        context = render_rect(context, x, y, width - 2 * x, height - 2 * y, border, fill);
         context.shadowBlur = 2;
         context.shadowColor = "white";
+        context.globalAlpha = alpha || 1;
         context.stroke();
         context.fill();
         return square;
@@ -932,8 +946,11 @@ var SHAPEWARS = function (document, window) {
         //attack_indicator.width = background_square_width + 10;
         //attack_indicator.height = background_square_height + 10;
 
-        minion_stats_filled = generate_minionStatSquare("black", "white");
-        minion_stats_empty = generate_minionStatSquare("white", "white");
+        graphics_square_filled = generate_minionStatSquare(1, 1, 10, 10, "black", "white");
+        graphics_square_empty = generate_minionStatSquare(1, 1, 10, 10, "white", "white");
+
+        graphics_health_full = generate_minionStatSquare(0, 0, 2, 2, "white", "white");
+
         for (i = 0; i < 10; i += 1) {
             background_square[i] = undefined;
         }
