@@ -1,6 +1,8 @@
 Todo:
 
-    * Correcting attack algorithm, so that we can attack tiles of different players
+    * review the conquest algorithm
+    * defence algorithm
+    * adding new listeners (touch listener)
     * Pausing game...
     * Visualise minion generation
     * Create algorithm for when attacking the same tile by 2 players (or defend)
@@ -19,3 +21,4 @@ Done:
     * AI
     * Visualise how many minions can be generated per tile
     * Visualise minion health
+    * Correcting attack algorithm, so that we can attack tiles of different players
