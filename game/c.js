@@ -1,4 +1,3 @@
-
 var SHAPEWARS = function (document, window) {
     "use strict";
 
@@ -193,88 +192,7 @@ var SHAPEWARS = function (document, window) {
      *
      *********************************************************************/
 
-    function logic_generateMinions() {
-        var i;
 
-        for (i = 0; i < map.length; i += 1) {
-            if ((map[i] === current_player && map_minion[i] < map_type[i])
-                    || (master && player_type[map[i]] === 2 && map_minion[i] < map_type[i])) {
-                if (map_conquest[i] === 0) {
-                    map_minion_progress[i] += 1;
-                    if (map_minion_progress[i] >= ENUM_MINION.generation_barier) {
-                        map_minion_progress[i] = 0;
-                        player_availableMinions[map[i]] += 1;
-                        player_minions[i][map_minion[i]] = helper_createDefaultMinion(helper_mapX(i, map_width), helper_mapY(i, map_width));
-                        map_minion[i] += 1;
-
-                        if (master && player_type[map[i]] === 2) {
-                            order_attack(map[i], helper_mapX(attack_target[map[i]], map_width), helper_mapY(attack_target[map[i]], map_width), 1);
-                        }
-
-                        //TODO: NETWORK - notify others that minion is created for specific player (if master)
-                        redrawBackground();
-                    }
-                }
-            }
-        }
-    }
-
-    function logic_updateMinionMovement() {
-        var i, j, minion;
-
-        for (i = 0; i < map.length; i += 1) {
-
-            for (j = 0; j < map_minion[i]; j += 1) {
-                minion = player_minions[i][j];
-                if (minion[ENUM_MINION.destination_local_x] !== -1) {
-                    helper_moveMinion(minion);
-                }
-            }
-
-            if ((map[i] === current_player) || (master && player_type[map[i]] === 2)) {
-                for (j = 0; j < map_minion[i]; j += 1) {
-                    minion = player_minions[i][j];
-                    if (minion[ENUM_MINION.destination_x] === -1) {
-                        if (minion[ENUM_MINION.destination_local_x] === -1) {
-                            if (minion[ENUM_MINION.order] === ENUM_ORDER.none) {
-                                helper_recountMinionDestination(minion, Math.random() * (background_square_width - minion_width), Math.random() * (background_square_height - minion_height));
-                                //TODO: NETWORK - notify others about minion destination change
-                                //TODO: NETWORK - notify others about minion current location
-                            }
-                        }
-                    } else {
-                        if (minion[ENUM_MINION.destination_local_x] === -1) {
-                            if (minion[ENUM_MINION.current_local_x] !== square_middle_x && minion[ENUM_MINION.current_local_y] !== square_middle_y) {
-                                helper_recountMinionDestination(minion, square_middle_x, square_middle_y);
-                                //TODO: NETWORK - notify others about minion destination change
-                                //TODO: NETWORK - notify others about minion current location
-                            } else { //TODO: Add here check if neighbour
-                                minion[ENUM_MINION.current_x] = minion[ENUM_MINION.destination_x];
-                                minion[ENUM_MINION.current_y] = minion[ENUM_MINION.destination_y];
-                                minion[ENUM_MINION.current] = helper_remapPoint(minion[ENUM_MINION.current_x], minion[ENUM_MINION.current_y], map_width);
-
-                                minion[ENUM_MINION.destination_x] = -1;
-                                minion[ENUM_MINION.destination_y] = -1;
-                                if (map[i] === map[minion[ENUM_MINION.current]]) {
-                                    if (i === minion[ENUM_MINION.current]) {
-                                        //Minion returned to base
-                                        minion[ENUM_MINION.order] = ENUM_ORDER.none;
-                                    } else {
-                                        //Minion went to defend
-                                        minion[ENUM_MINION.order] = ENUM_ORDER.attack;
-                                    }
-                                } else {
-                                    //Minion went to attack
-                                    minion[ENUM_MINION.order] = ENUM_ORDER.attack;
-                                }
-                                //TODO: NETWORK - notify others about minion current location (change in location)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     function getFreeSubsquare(player, square) {
         //TODO: sometimes minion may arrive at a destination, where other minion is already present. If that's the case - decide what to do...
@@ -335,16 +253,76 @@ var SHAPEWARS = function (document, window) {
         //TODO: NETWORK - notify others about minion current location
     }
 
-    function logic_order() {
+
+    function logic_minions() {
         var i, j, minion, to_delete;
 
         for (i = 0; i < map.length; i += 1) {
-            //TODO: if master, process attacks for all of cpu-s
-            if (map[i] === current_player || (master && player_type[map[i]] === 2)) {
+            //Movement
+            for (j = 0; j < map_minion[i]; j += 1) {
+                minion = player_minions[i][j];
+                if (minion[ENUM_MINION.destination_local_x] !== -1) {
+                    helper_moveMinion(minion);
+                }
+            }
+
+            if ((map[i] === current_player) || (master && player_type[map[i]] === 2)) {
+                //Generation
+                if (map_minion[i] < map_type[i]) {
+                    if (map_conquest[i] === 0) {
+                        map_minion_progress[i] += 1;
+                        if (map_minion_progress[i] >= ENUM_MINION.generation_barier) {
+                            map_minion_progress[i] = 0;
+                            player_availableMinions[map[i]] += 1;
+                            player_minions[i][map_minion[i]] = helper_createDefaultMinion(helper_mapX(i, map_width), helper_mapY(i, map_width));
+                            map_minion[i] += 1;
+
+                            if (master && player_type[map[i]] === 2) {
+                                order_attack(map[i], helper_mapX(attack_target[map[i]], map_width), helper_mapY(attack_target[map[i]], map_width), 1);
+                            }
+
+                            //TODO: NETWORK - notify others that minion is created for specific player (if master)
+                            redrawBackground();
+                        }
+                    }
+                }
+
                 to_delete = [];
+                //Movement decisions
                 for (j = 0; j < map_minion[i]; j += 1) {
                     minion = player_minions[i][j];
-                    if (minion[ENUM_MINION.order] === ENUM_ORDER.attack) {
+                    if (minion[ENUM_MINION.destination_x] === -1 && minion[ENUM_MINION.destination_local_x] === -1 && minion[ENUM_MINION.order] === ENUM_ORDER.none) {
+                        helper_recountMinionDestination(minion, Math.random() * (background_square_width - minion_width), Math.random() * (background_square_height - minion_height));
+                        //TODO: NETWORK - notify others about minion destination change
+                        //TODO: NETWORK - notify others about minion current location
+                    } else if (minion[ENUM_MINION.destination_x] !== -1 && minion[ENUM_MINION.destination_local_x] === -1) {
+                        if (minion[ENUM_MINION.current_local_x] !== square_middle_x && minion[ENUM_MINION.current_local_y] !== square_middle_y) {
+                            helper_recountMinionDestination(minion, square_middle_x, square_middle_y);
+                            //TODO: NETWORK - notify others about minion destination change
+                            //TODO: NETWORK - notify others about minion current location
+                        } else { //TODO: Add here check if neighbour
+                            minion[ENUM_MINION.current_x] = minion[ENUM_MINION.destination_x];
+                            minion[ENUM_MINION.current_y] = minion[ENUM_MINION.destination_y];
+                            minion[ENUM_MINION.current] = helper_remapPoint(minion[ENUM_MINION.current_x], minion[ENUM_MINION.current_y], map_width);
+
+                            minion[ENUM_MINION.destination_x] = -1;
+                            minion[ENUM_MINION.destination_y] = -1;
+                            if (map[i] === map[minion[ENUM_MINION.current]]) {
+                                if (i === minion[ENUM_MINION.current]) {
+                                    //Minion returned to base
+                                    minion[ENUM_MINION.order] = ENUM_ORDER.none;
+                                } else {
+                                    //Minion went to defend
+                                    minion[ENUM_MINION.order] = ENUM_ORDER.attack;
+                                }
+                            } else {
+                                //Minion went to attack
+                                minion[ENUM_MINION.order] = ENUM_ORDER.attack;
+                            }
+                            //TODO: NETWORK - notify others about minion current location (change in location)
+                        }
+                    } else if (minion[ENUM_MINION.order] === ENUM_ORDER.attack) {
+                        // ATTACK
                         if (minion[ENUM_MINION.current_local_x] === square_middle_x && minion[ENUM_MINION.current_local_y] === square_middle_y && minion[ENUM_MINION.destination_local_x] === -1) {
                             logic_nextAttackStep(i, minion);
                             //TODO: NETWORK - notify others about minion destination change
@@ -403,8 +381,11 @@ var SHAPEWARS = function (document, window) {
                                 logic_nextAttackStep(i, minion);
                             }
                         }
+
                     }
+
                 }
+
                 if (to_delete.length > 0) {
                     for (j = map_minion[i]; j >= 0; j -= 1) {
                         for (minion = 0; minion < to_delete.length; minion += 1) {
@@ -593,7 +574,9 @@ var SHAPEWARS = function (document, window) {
             decision_timer[player] += 1;
         } else if (player_availableMinions[player] > 0) {
             decision_timer[player] = 0;
-            var toAttack = [], attackRegions = 0, i, x, y;
+            var toAttack = [],
+                attackRegions = 0,
+                i, x, y;
             for (i = 0; i < map.length; i += 1) {
                 x = helper_mapX(i, map_width);
                 y = helper_mapY(i, map_width);
@@ -662,9 +645,10 @@ var SHAPEWARS = function (document, window) {
         redraw_background_indicator = false;
         while (count) {
             updateTime += tickLength;
-            logic_generateMinions();
-            logic_updateMinionMovement();
-            logic_order();
+            //logic_generateMinions();
+            //logic_updateMinionMovement();
+            //logic_order();
+            logic_minions();
             logic_recountConquest(current_player);
             if (master) {
                 ai_decisions();
@@ -721,7 +705,8 @@ var SHAPEWARS = function (document, window) {
     }
 
     function findNeighbour(player, x, y, done) {
-        var search, searchlist = [], i, markDone;
+        var search, searchlist = [],
+            i, markDone;
 
         //LEFT
         search = helper_remapPoint(x - 1, y, map_width);
@@ -842,7 +827,7 @@ var SHAPEWARS = function (document, window) {
         var i, square = helper_remapPoint(x, y, map_width);
         for (i = 0; i < conquest_squares_count; i += 1) {
             if ((map_conquestPlayer[square][i] === player && map_conquestHealth[square][i] < ENUM_SUBSQUARE.base_health) ||
-                    map_conquestPlayer[square][i] !== player) {
+                map_conquestPlayer[square][i] !== player) {
                 order_attack(player, x, y, range);
                 map_conquest[square] = -1;
                 //redrawBackground();
