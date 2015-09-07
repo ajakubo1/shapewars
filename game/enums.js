@@ -3,7 +3,7 @@ var ENUM_MOVEMENT = {
     "top": 2,
     "right": 3,
     "bottom": 4
-}
+};
 
 
 var ENUM_SUBSQUARE = {
@@ -14,7 +14,7 @@ var ENUM_SUBSQUARE = {
     "to_heal": 4,
 
     "base_health": 30
-}
+};
 
 var ENUM_MINION = {
     "current_x": 0,
@@ -35,16 +35,16 @@ var ENUM_MINION = {
     
     "generation_barier": 600,
     "speed": 1
-}
+};
 
 var ENUM_ORDER = {
     "none": 0,
     "attack": 1,
     "defend": 2,
     "moving": 3
-}
+};
 
 var ENUM_GLOBAL = {
     width: 680,
     height: 480
-}
+};
