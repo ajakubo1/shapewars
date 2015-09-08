@@ -31,8 +31,9 @@ var ENUM_MINION = {
     "y_speed": 11,
     "current": 12,
     "current_local": 13,
-    "size": 14,
-    
+    "timer": 14,
+    "size": 15,
+
     "generation_barier": 600,
     "speed": 1
 };
