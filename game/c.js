@@ -419,7 +419,31 @@ var SHAPEWARS = function (document, window) {
             //Take all of fields which player are currently conquering
             if (map_conquestAttacker[i][player] === 1) {
 
-                attackers = 0;
+                conquered = true;
+                for (j = 0; j < conquest_squares_count; j += 1) {
+                    if (map_conquestHealth[i][j] < ENUM_SUBSQUARE.base_health || map_conquestPlayer[i][j] !== player) {
+                        conquered = false;
+                        break;
+                    }
+                }
+
+                if (conquered) {
+                    if (player_type[player] === 2) {
+                        attack_target[player] = -1;
+                    }
+
+                    map_conquest[i] = 0;
+                    map[i] = player;
+                    redrawBackground();
+
+                    for (j = 0; j < map_conquestAttacker[i].length; j += 1) {
+                        if (map_conquestAttacker[i][j] === 1) {
+                            map_conquestAttacker[i][j] = 0;
+                        }
+                    }
+                }
+
+                /*attackers = 0;
                 for (j = 0; j < map_conquestAttacker[i].length; j += 1) {
                     if (map_conquestAttacker[i][j] === 1) {
                         attackers += 1;
@@ -444,25 +468,48 @@ var SHAPEWARS = function (document, window) {
                         map_conquest[i] = -1;
                         map[i] = player;
                         redrawBackground();
+                        
+                        for (j = 0; j < map_conquestAttacker[i].length; j += 1) {
+                            if (j !== player) {
+                                if (map_conquestAttacker[i][j] === 1) {
+                                    map_conquestAttacker[i][j] = 0;
+                                }
+                            }
+                        }
                     }
 
                     if (map_conquest[i] > 600 * attackers) {
                         map_conquest[i] = -1;
                         redrawBackground();
+                        
+                        for (j = 0; j < map_conquestAttacker[i].length; j += 1) {
+                            if (j !== player) {
+                                if (map_conquestAttacker[i][j] === 1) {
+                                    map_conquestAttacker[i][j] = 0;
+                                }
+                            }
+                        }
                     }
                 } else if (map_conquest[i] === -1 && map[i] === player) {
                     conquered = true;
                     for (j = 0; j < conquest_squares_count; j += 1) {
-                        if (map_conquestHealth[i][j] < ENUM_SUBSQUARE.base_health) {
+                        if (map_conquestHealth[i][j] < ENUM_SUBSQUARE.base_health || map_conquestPlayer[i][j] !== player) {
                             conquered = false;
                             break;
                         }
                     }
                     if (conquered) {
+                        for (j = 0; j < map_conquestAttacker[i].length; j += 1) {
+                            if (j !== player) {
+                                if (map_conquestAttacker[i][j] === 1) {
+                                    map_conquestAttacker[i][j] = 0;
+                                }
+                            }
+                        }
                         map_conquest[i] = 0;
                         redrawBackground();
                     }
-                }
+                }*/
             }
         }
     }
@@ -1127,7 +1174,7 @@ var SHAPEWARS = function (document, window) {
 
     function init() {
         //Truly initial variables
-        var input_map = [
+        /*var input_map = [
             [8, 9, 8, 8, 1],
             [9, 0, 9, 9, 9],
             [8, 9, 8, 8, 9],
@@ -1142,7 +1189,14 @@ var SHAPEWARS = function (document, window) {
             [1, 1, 1, 1, 0],
             [1, 0, 1, 1, 1],
             [1, 0, 1, 1, 1]
+        ],*/
+        
+        var  input_map = [
+            [0, 9, 1]
         ],
+            type_map = [
+                [5, 3, 5]
+                ],
             input_players = [
                 {
                     "name": "claim",
