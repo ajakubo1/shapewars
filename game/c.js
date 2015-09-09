@@ -1,4 +1,4 @@
-var SHAPEWARS = function (document, window) {
+var SHAPEWARS = function (document, window, config_map, config_types, config_players) {
     "use strict";
 
     //Map-related variables for 1d to 2d mapping
@@ -1210,61 +1210,29 @@ var SHAPEWARS = function (document, window) {
             type_map = [
                 [5, 3, 5]
                 ],*/
-        var input_map = [
-            [8, 8, 1, 8, 8],
-            [8, 9, 9, 9, 8],
-            [0, 9, 9, 9, 2],
-            [8, 9, 9, 9, 8],
-            [8, 8, 3, 8, 8]
-        ],
-            type_map = [
-            [0, 0, 5, 0, 0],
-            [0, 3, 1, 3, 0],
-            [5, 1, 3, 1, 5],
-            [0, 3, 1, 3, 0],
-            [0, 0, 5, 0, 0]
-        ],
-            input_players = [
-                {
-                    "name": "claim",
-                    "color": "blue",
-                    "type": 0
-            }, {
-                    "name": "pc",
-                    "color": "green",
-                    "type": 2
-            }, {
-                    "name": "pc",
-                    "color": "red",
-                    "type": 2
-            }, {
-                    "name": "pc",
-                    "color": "black",
-                    "type": 2
-            }
-        ],
-            i, j, k;
+
+        var i, j, k;
 
         //TODO: dunno how normal init would look like
 
         //Initialize player-related variables
-        player_id = new Int8Array(input_players.length);
-        player_name = new Array(input_players.length);
-        player_color = new Array(input_players.length);
-        player_type = new Int8Array(input_players.length);
-        player_conquered = new Int8Array(input_players.length);
-        player_availableMinions = new Int8Array(input_players.length);
-        attack_target = new Int16Array(input_players.length);
-        backup_target = new Int16Array(input_players.length);
-        decision_timer = new Int16Array(input_players.length);
-        map_conquest = new Int16Array(input_map.length * input_map[0].length);
+        player_id = new Int8Array(config_players.length);
+        player_name = new Array(config_players.length);
+        player_color = new Array(config_players.length);
+        player_type = new Int8Array(config_players.length);
+        player_conquered = new Int8Array(config_players.length);
+        player_availableMinions = new Int8Array(config_players.length);
+        attack_target = new Int16Array(config_players.length);
+        backup_target = new Int16Array(config_players.length);
+        decision_timer = new Int16Array(config_players.length);
+        map_conquest = new Int16Array(config_map.length * config_map[0].length);
 
         //Fill player-related variables
-        for (i = 0; i < input_players.length; i += 1) {
+        for (i = 0; i < config_players.length; i += 1) {
             player_id[i] = i;
-            player_name[i] = input_players[i].name;
-            player_color[i] = input_players[i].color;
-            player_type[i] = input_players[i].type;
+            player_name[i] = config_players[i].name;
+            player_color[i] = config_players[i].color;
+            player_type[i] = config_players[i].type;
             if (player_type[i] === 0) {
                 current_player = i;
             }
@@ -1277,7 +1245,7 @@ var SHAPEWARS = function (document, window) {
         master = false;
 
         if (current_player === 0) {
-            for (i = 1; i < input_players.length; i += 1) {
+            for (i = 1; i < config_players.length; i += 1) {
                 if (player_type[i] === 2) { // CPU
                     master = true;
                     break;
@@ -1286,53 +1254,53 @@ var SHAPEWARS = function (document, window) {
         }
 
         //Initialize map
-        map_height = input_map.length;
-        map_width = input_map[0].length;
-        map = new Int8Array(input_map.length * input_map[0].length);
-        map_type = new Int8Array(input_map.length * input_map[0].length);
-        map_minion = new Int8Array(input_map.length * input_map[0].length);
-        map_minion_progress = new Float32Array(input_map.length * input_map[0].length);
-        map_conquestHealth = new Array(input_map.length * input_map[0].length);
-        map_conquestProgress = new Array(input_map.length * input_map[0].length);
-        map_conquestAttacker = new Array(input_map.length * input_map[0].length);
-        map_conquestPlayer = new Array(input_map.length * input_map[0].length);
-        player_minions = new Array(input_map.length * input_map[0].length);
+        map_height = config_map.length;
+        map_width = config_map[0].length;
+        map = new Int8Array(config_map.length * config_map[0].length);
+        map_type = new Int8Array(config_map.length * config_map[0].length);
+        map_minion = new Int8Array(config_map.length * config_map[0].length);
+        map_minion_progress = new Float32Array(config_map.length * config_map[0].length);
+        map_conquestHealth = new Array(config_map.length * config_map[0].length);
+        map_conquestProgress = new Array(config_map.length * config_map[0].length);
+        map_conquestAttacker = new Array(config_map.length * config_map[0].length);
+        map_conquestPlayer = new Array(config_map.length * config_map[0].length);
+        player_minions = new Array(config_map.length * config_map[0].length);
         conquest_squares_count = square_minion_width * square_minion_height;
-        for (i = 0; i < input_map.length; i += 1) {
-            for (j = 0; j < input_map[0].length; j += 1) {
-                map_conquestAttacker[i * input_map[0].length + j] = new Int8Array(input_players.length);
-                map[i * input_map[0].length + j] = input_map[i][j];
-                map_type[i * input_map[0].length + j] = type_map[i][j];
-                map_minion[i * input_map[0].length + j] = 0;
-                map_minion_progress[i * input_map[0].length + j] = 0;
-                if (input_map[i][j] !== 8) {
-                    map_conquestHealth[i * input_map[0].length + j] = new Int8Array(conquest_squares_count);
-                    map_conquestProgress[i * input_map[0].length + j] = new Int8Array(conquest_squares_count);
-                    map_conquestPlayer[i * input_map[0].length + j] = new Int8Array(conquest_squares_count);
+        for (i = 0; i < config_map.length; i += 1) {
+            for (j = 0; j < config_map[0].length; j += 1) {
+                map_conquestAttacker[i * config_map[0].length + j] = new Int8Array(config_players.length);
+                map[i * config_map[0].length + j] = config_map[i][j];
+                map_type[i * config_map[0].length + j] = config_types[i][j];
+                map_minion[i * config_map[0].length + j] = 0;
+                map_minion_progress[i * config_map[0].length + j] = 0;
+                if (config_map[i][j] !== 8) {
+                    map_conquestHealth[i * config_map[0].length + j] = new Int8Array(conquest_squares_count);
+                    map_conquestProgress[i * config_map[0].length + j] = new Int8Array(conquest_squares_count);
+                    map_conquestPlayer[i * config_map[0].length + j] = new Int8Array(conquest_squares_count);
                 } else {
-                    map_conquestHealth[i * input_map[0].length + j] = new Int8Array(1);
-                    map_conquestProgress[i * input_map[0].length + j] = new Int8Array(1);
+                    map_conquestHealth[i * config_map[0].length + j] = new Int8Array(1);
+                    map_conquestProgress[i * config_map[0].length + j] = new Int8Array(1);
                 }
 
-                player_minions[i * input_map[0].length + j] = new Array(type_map[i][j]);
+                player_minions[i * config_map[0].length + j] = new Array(config_types[i][j]);
 
-                if (input_map[i][j] < 8) {
-                    map_minion[i * input_map[0].length + j] = 3;
-                    player_minions[i * input_map[0].length + j][0] = helper_createDefaultMinion(j, i);
-                    player_minions[i * input_map[0].length + j][1] = helper_createDefaultMinion(j, i);
-                    player_minions[i * input_map[0].length + j][2] = helper_createDefaultMinion(j, i);
+                if (config_map[i][j] < 8) {
+                    map_minion[i * config_map[0].length + j] = 3;
+                    player_minions[i * config_map[0].length + j][0] = helper_createDefaultMinion(j, i);
+                    player_minions[i * config_map[0].length + j][1] = helper_createDefaultMinion(j, i);
+                    player_minions[i * config_map[0].length + j][2] = helper_createDefaultMinion(j, i);
                 }
 
-                for (k = 0; k < map_conquestHealth[i * input_map[0].length + j].length; k += 1) {
-                    if (input_map[i][j] !== 8) {
-                        if (input_map[i][j] === 9) {
-                            map_conquestHealth[i * input_map[0].length + j][k] = ENUM_SUBSQUARE.base_health;
-                            map_conquestProgress[i * input_map[0].length + j][k] = ENUM_SUBSQUARE.free;
+                for (k = 0; k < map_conquestHealth[i * config_map[0].length + j].length; k += 1) {
+                    if (config_map[i][j] !== 8) {
+                        if (config_map[i][j] === 9) {
+                            map_conquestHealth[i * config_map[0].length + j][k] = ENUM_SUBSQUARE.base_health;
+                            map_conquestProgress[i * config_map[0].length + j][k] = ENUM_SUBSQUARE.free;
                         } else {
-                            map_conquestHealth[i * input_map[0].length + j][k] = ENUM_SUBSQUARE.base_health + 5;
-                            map_conquestProgress[i * input_map[0].length + j][k] = ENUM_SUBSQUARE.conquered;
+                            map_conquestHealth[i * config_map[0].length + j][k] = ENUM_SUBSQUARE.base_health + 5;
+                            map_conquestProgress[i * config_map[0].length + j][k] = ENUM_SUBSQUARE.conquered;
                         }
-                        map_conquestPlayer[i * input_map[0].length + j][k] = input_map[i][j];
+                        map_conquestPlayer[i * config_map[0].length + j][k] = config_map[i][j];
                     }
 
                 }
@@ -1385,4 +1353,51 @@ var SHAPEWARS = function (document, window) {
     start();
 };
 
-SHAPEWARS(document, window);
+two_players {
+    
+}
+
+four_players {
+    "diamond": {
+        "map": [
+            [8, 8, 1, 8, 8],
+            [8, 9, 9, 9, 8],
+            [0, 9, 9, 9, 2],
+            [8, 9, 9, 9, 8],
+            [8, 8, 3, 8, 8]
+        ],
+        "types": [
+            [0, 0, 5, 0, 0],
+            [0, 3, 1, 3, 0],
+            [5, 1, 3, 1, 5],
+            [0, 3, 1, 3, 0],
+            [0, 0, 5, 0, 0]
+        ]
+    }
+}
+
+config = {
+    "map": four_players.diamond.map,
+    "types": four_players.diamond.types,
+    "players": [
+        {
+            "name": "claim",
+            "color": "blue",
+            "type": 0
+            }, {
+            "name": "pc",
+            "color": "green",
+            "type": 2
+            }, {
+            "name": "pc",
+            "color": "red",
+            "type": 2
+            }, {
+            "name": "pc",
+            "color": "black",
+            "type": 2
+            }
+        ]
+}
+
+SHAPEWARS(document, window, config.map, config.types, config.players);
