@@ -14,11 +14,9 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
         //Canvas-related variables
         foreground = document.getElementById('f'),
-        middleground = document.getElementById('m'),
         background = document.getElementById('b'),
         foreground_ctx = foreground.getContext('2d'),
         background_ctx = background.getContext('2d'),
-        middleground_ctx = background.getContext('2d'),
 
         //how many background fields fits into screen width/height
         screen_width = 4,
@@ -285,20 +283,14 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                         }
                     }
 
-
-                    console.info(i, map_minion_progress[i] )
-
                     if (map_minion_progress[i] >= ENUM_MINION.generation_barier) {
                         map_minion_progress[i] = 0;
                         player_availableMinions[map[i]] += 1;
                         player_minions[i][map_minion[i]] = helper_createDefaultMinion(helper_mapX(i, map_width), helper_mapY(i, map_width));
                         map_minion[i] += 1;
-
                         if (master && player_type[map[i]] === 2 && attack_target[map[i]] !== -1) {
-                            console.info("give attack order?")
                             order_attack(map[i], helper_mapX(attack_target[map[i]], map_width), helper_mapY(attack_target[map[i]], map_width), 1);
                         }
-
                         //TODO: NETWORK - notify others that minion is created for specific player (if master)
                         redrawBackground();
                     }
@@ -311,7 +303,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
                     if (master && player_type[map[i]] === 2 && player_availableMinions[map[i]] > 0 && decision_timer[map[i]] > 60) {
                         decision_timer[map[i]] = 0;
-                        console.info("give attack order!", player_availableMinions[map[i]])
                         order_attack(map[i], helper_mapX(i, map_width), helper_mapY(i, map_width), 1);
                     }
 
@@ -627,30 +618,24 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                         attackRegions += 1;
                     }
 
-                    if (map[helper_remapPoint(x - 1, y, map_width)] !== 8 && map[helper_remapPoint(x - 1, y, map_width)] !== undefined
-                            && map[helper_remapPoint(x - 1, y, map_width)] !== player) {
+                    if (map[helper_remapPoint(x - 1, y, map_width)] !== 8 && map[helper_remapPoint(x - 1, y, map_width)] !== undefined && map[helper_remapPoint(x - 1, y, map_width)] !== player) {
                         toAttack.push(helper_remapPoint(x - 1, y, map_width));
                     }
-                    if (map[helper_remapPoint(x + 1, y, map_width)] !== 8 && map[helper_remapPoint(x + 1, y, map_width)] !== undefined
-                           && map[helper_remapPoint(x + 1, y, map_width)] !== player) {
+                    if (map[helper_remapPoint(x + 1, y, map_width)] !== 8 && map[helper_remapPoint(x + 1, y, map_width)] !== undefined && map[helper_remapPoint(x + 1, y, map_width)] !== player) {
                         toAttack.push(helper_remapPoint(x + 1, y, map_width));
                     }
-                    if (map[helper_remapPoint(x, y - 1, map_width)] !== 8 && map[helper_remapPoint(x, y - 1, map_width)] !== undefined
-                           && map[helper_remapPoint(x, y - 1, map_width)] !== player) {
+                    if (map[helper_remapPoint(x, y - 1, map_width)] !== 8 && map[helper_remapPoint(x, y - 1, map_width)] !== undefined && map[helper_remapPoint(x, y - 1, map_width)] !== player) {
                         toAttack.push(helper_remapPoint(x, y - 1, map_width));
                     }
-                    if (map[helper_remapPoint(x, y + 1, map_width)] !== 8 && map[helper_remapPoint(x, y + 1, map_width)] !== undefined
-                           && map[helper_remapPoint(x, y + 1, map_width)] !== player) {
+                    if (map[helper_remapPoint(x, y + 1, map_width)] !== 8 && map[helper_remapPoint(x, y + 1, map_width)] !== undefined && map[helper_remapPoint(x, y + 1, map_width)] !== player) {
                         toAttack.push(helper_remapPoint(x, y + 1, map_width));
                     }
                 }
             }
 
             if (toAttack.length > 0) {
-                console.info(toAttack);
                 attack_target[player] = toAttack[Math.floor(Math.random() * toAttack.length)];
                 for (i = 0; i < attackRegions; i += 1) {
-                    console.info(attack_target[player]);
                     order_attack(player, helper_mapX(attack_target[player], map_width), helper_mapY(attack_target[player], map_width), 1);
                 }
             }
@@ -709,23 +694,25 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
     function check_winningConditions() {
         //LAST MAN STANDING
-        var i, player_won = [], conquest = 0, winner_is;
-        for (i = 0 ; i < player_id.length; i += 1) {
+        var i, player_won = [],
+            conquest = 0,
+            winner_is;
+        for (i = 0; i < player_id.length; i += 1) {
             player_won[i] = 0;
         }
         for (i = 0; i < map.length; i += 1) {
-            if(map[i] < 8) {
+            if (map[i] < 8) {
                 player_won[map[i]] += 1;
             }
         }
-        for (i = 0 ; i < player_id.length; i += 1) {
-            if(player_won[i] > 0) {
+        for (i = 0; i < player_id.length; i += 1) {
+            if (player_won[i] > 0) {
                 conquest += 1;
                 winner_is = i;
             }
         }
 
-        if(conquest === 1) {
+        if (conquest === 1) {
             running = false;
             window.removeEventListener('resize', listener_resize);
             foreground.removeEventListener('mouseup', listener_mouseup);
@@ -739,7 +726,9 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             }
             console.info('And the winner is: ' + player_name[winner_is]);
 
-            if(current_player === winner_is) {
+            document.getElementById('end').style.display = "block";
+
+            if (current_player === winner_is) {
                 console.info("You've won!");
             } else {
                 console.info("You've lost :/...");
@@ -748,7 +737,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function frame(frameTime) {
-        if(running) {
+        if (running) {
             window.requestAnimationFrame(frame);
         }
 
@@ -1123,16 +1112,12 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         }
         background.style.transformOrigin = "0 0"; //scale from top left
         background.style.transform = "scale(" + scale + ")";
-        middleground.style.transformOrigin = "0 0"; //scale from top left
-        middleground.style.transform = "scale(" + scale + ")";
         foreground.style.transformOrigin = "0 0"; //scale from top left
         foreground.style.transform = "scale(" + scale + ")";
 
         background.style.top = top;
-        middleground.style.top = top;
         foreground.style.top = top;
         background.style.left = left;
-        middleground.style.left = left;
         foreground.style.left = left;
     }
 
@@ -1239,34 +1224,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
      *********************************************************************/
 
     function init() {
-        //Truly initial variables
-        /*var input_map = [
-            [8, 9, 8, 8, 1],
-            [9, 0, 9, 9, 9],
-            [8, 9, 8, 8, 9],
-            [9, 9, 9, 9, 8],
-            [9, 8, 9, 9, 9],
-            [9, 8, 9, 9, 9]
-        ],
-            type_map = [
-            [0, 1, 0, 0, 5],
-            [1, 5, 1, 1, 1],
-            [0, 1, 0, 0, 1],
-            [1, 1, 1, 1, 0],
-            [1, 0, 1, 1, 1],
-            [1, 0, 1, 1, 1]
-        ],*/
-
-        /*var input_map = [
-            [0, 9, 1]
-        ],
-            type_map = [
-                [5, 3, 5]
-                ],*/
-
         var i, j, k;
-
-        //TODO: dunno how normal init would look like
 
         //Initialize player-related variables
         player_id = new Int8Array(config_players.length);
@@ -1380,8 +1338,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         //Setting up width/height of canvas elements
         foreground.width = ENUM_GLOBAL.width;
         foreground.height = ENUM_GLOBAL.height;
-        middleground.width = ENUM_GLOBAL.width;
-        middleground.height = ENUM_GLOBAL.height;
         background.width = ENUM_GLOBAL.width;
         background.height = ENUM_GLOBAL.height;
 
@@ -1409,110 +1365,278 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     start();
 };
 
-two_players = {
 
-}
 var two_players = {
-    "testing": {
-        "map": [
+        "testing": {
+            "map": [
             [0, 9, 1]
         ],
-        "types": [
+            "types": [
             [5, 1, 1]
         ]
-    },
-    "snake": {
-        "map": [
-            [ 0, 8, 8, 8, 8, ] ,
-            [ 9, 8, 9, 9, 8, ] ,
-            [ 9, 9, 9, 9, 9, ] ,
-            [ 8, 9, 9, 8, 9, ] ,
-            [ 8, 8, 8, 8, 1, ]
+        },
+        "snake": {
+            "map": [
+            [0, 8, 8, 8, 8, ],
+            [9, 8, 9, 9, 8, ],
+            [9, 9, 9, 9, 9, ],
+            [8, 9, 9, 8, 9, ],
+            [8, 8, 8, 8, 1, ]
         ],
-        "types": [
-            [ 5, 0, 0, 0, 0, ] ,
-            [ 1, 0, 1, 5, 0, ] ,
-            [ 1, 0, 3, 0, 1, ] ,
-            [ 0, 5, 1, 0, 1, ] ,
-            [ 0, 0, 0, 0, 5, ]
+            "types": [
+            [5, 0, 0, 0, 0, ],
+            [1, 0, 1, 5, 0, ],
+            [1, 0, 3, 0, 1, ],
+            [0, 5, 1, 0, 1, ],
+            [0, 0, 0, 0, 5, ]
         ]
-    },
-    "tauros": {
-        "map": [
-[ 9, 9, 8, 9, 9, ] ,
-[ 9, 8, 8, 8, 9, ] ,
-[ 0, 9, 9, 9, 1, ] ,
-[ 9, 8, 8, 8, 9, ] ,
-[ 9, 9, 8, 9, 9, ]
+        },
+        "tauros": {
+            "map": [
+            [9, 9, 8, 9, 9, ],
+            [9, 8, 8, 8, 9, ],
+            [0, 9, 9, 9, 1, ],
+            [9, 8, 8, 8, 9, ],
+            [9, 9, 8, 9, 9, ]
         ],
-        "types": [
-[ 2, 4, 0, 4, 2, ] ,
-[ 1, 0, 0, 0, 1, ] ,
-[ 5, 1, 1, 1, 5, ] ,
-[ 1, 0, 0, 0, 1, ] ,
-[ 2, 4, 0, 4, 2, ]
+            "types": [
+            [2, 4, 0, 4, 2, ],
+            [1, 0, 0, 0, 1, ],
+            [5, 1, 1, 1, 5, ],
+            [1, 0, 0, 0, 1, ],
+            [2, 4, 0, 4, 2, ]
         ]
-    }
-};
+        }
+    },
+    two_players_index = ['snake', 'tauros'];
 
 var four_players = {
-    "diamond": {
-        "map": [
+        "diamond": {
+            "map": [
             [8, 8, 1, 8, 8],
             [8, 9, 9, 9, 8],
             [0, 9, 9, 9, 2],
             [8, 9, 9, 9, 8],
             [8, 8, 3, 8, 8]
         ],
-        "types": [
+            "types": [
             [0, 0, 5, 0, 0],
             [0, 3, 1, 3, 0],
             [5, 1, 3, 1, 5],
             [0, 3, 1, 3, 0],
             [0, 0, 5, 0, 0]
         ]
-    },
+        },
 
-    "cross": {
-        "map": [
-            [ 9, 9, 1, 9, 9, ],
-            [ 9, 8, 9, 8, 9, ],
-            [ 0, 9, 9, 9, 2, ],
-            [ 9, 8, 9, 8, 9, ],
-            [ 9, 9, 3, 9, 9, ]
+        "cross": {
+            "map": [
+            [9, 9, 1, 9, 9, ],
+            [9, 8, 9, 8, 9, ],
+            [0, 9, 9, 9, 2, ],
+            [9, 8, 9, 8, 9, ],
+            [9, 9, 3, 9, 9, ]
         ],
-        "types": [
-            [ 4, 2, 5, 2, 4, ],
-            [ 2, 0, 1, 0, 2, ],
-            [ 5, 1, 1, 1, 5, ],
-            [ 2, 0, 1, 0, 2, ],
-            [ 4, 2, 5, 2, 4, ]
+            "types": [
+            [4, 2, 5, 2, 4, ],
+            [2, 0, 1, 0, 2, ],
+            [5, 1, 1, 1, 5, ],
+            [2, 0, 1, 0, 2, ],
+            [4, 2, 5, 2, 4, ]
         ]
+        }
+    },
+    four_players_index = ['diamond', 'cross'];
+
+
+var COMMUNICATION = (function () {
+    var socket = io(document.location.href),
+        log = document.getElementById('log'),
+        registration = document.getElementById('registration'),
+        register_button = document.getElementById('register'),
+        settings = document.getElementById('settings'),
+        settings_2 = document.getElementById('settings-2'),
+        settings_4 = document.getElementById('settings-4'),
+        play_button = document.getElementById('play'),
+        game = document.getElementById('game'),
+        name_field = document.getElementById('username'),
+        player_field = document.getElementById('players'),
+        mode_field = document.getElementById('mode'),
+        mode, players, name,
+        color_carousel = [
+            "blue",
+            "crimson",
+            "darkgreen",
+            "darkorange",
+            "darkslateblue",
+            "darkturquoise",
+            "hotpink",
+            "indigo"
+        ],
+
+        input_players;
+
+    function log(type, subtype, msg) {
+        if (type === 1) {
+            type = "Received";
+        } else {
+            type = "Sending"
+        }
+        log.innerHTML += '<li>' + Date.now() + ' | ' + type + ' | ' + subtype + ' | ' + msg + '</li>';
     }
-};
 
-var config = {
-    "map": two_players.testing.map,
-    "types": two_players.testing.types,
-    "players": [
-        {
-            "name": "claim",
-            "color": "blue",
-            "type": 0
-            }, {
-            "name": "pc",
-            "color": "green",
-            "type": 2
-            },/* {
-            "name": "pc",
-            "color": "red",
-            "type": 2
-            }, {
-            "name": "pc",
-            "color": "black",
-            "type": 2
-            }*/
-        ]
-}
+    function registered(data) {
+        var i;
+        input_players = data;
+        registration.style.display = "none";
+        settings.style.display = "block";
+        if (players === 4) {
+            settings_4.style.display = "block";
+        } else {
+            settings_2.style.display = "block";
+        }
 
-SHAPEWARS(document, window, config.map, config.types, config.players);
+        if (mode === 0) {
+
+            for (i = 0; i < players; i += 1) {
+
+                document.getElementById('p-' + (i + 1) + '-type' + players).disabled = true;
+                if (data[i].type === 2) {
+                    document.getElementById('p-' + (i + 1) + '-type' + players).getElementsByTagName('option')[1].selected = 'selected';
+                } else {
+                    document.getElementById('p-' + (i + 1) + '-type' + players).getElementsByTagName('option')[0].selected = 'selected';
+                }
+                document.getElementById('p-' + (i + 1) + '-name' + players).disabled = true;
+                document.getElementById('p-' + (i + 1) + '-name' + players).value = data[i].name;
+                selectColor(document.getElementById('p-' + (i + 1) + '-color' + players), 'color-square ' + data[i].color);
+                document.getElementById('p-' + (i + 1) + '-color' + players).getElementsByClassName(data[i].color)[0].selected = 'selected'
+                disableColor(data[i].color);
+
+            }
+        }
+    }
+
+    socket.on('registered', function (data) {
+        log(1, 'registered', JSON.stringify(data));
+        registered(data);
+    });
+
+    socket.on('start', function (data) {
+        log(1, 'start', JSON.stringify(data));
+    });
+
+    function send(type, data) {
+        log(0, type, JSON.stringify(data));
+        socket.emit(type, data);
+    }
+
+    function register() {
+        name = name_field.value;
+        players = parseInt(player_field.options[player_field.selectedIndex].value);
+        mode = parseInt(mode_field.options[mode_field.selectedIndex].value); //Single player
+
+        if (mode === 1) {
+            send('register', {
+                "name": name,
+                "players": players,
+                "mode": mode
+            });
+        } else {
+            var i, reg_data = [];
+
+            reg_data.push({
+                "name": name,
+                "color": color_carousel[0],
+                "type": 0
+            })
+
+            for (i = 1; i < players; i += 1) {
+                reg_data.push({
+                    "name": "pc-" + i,
+                    "color": color_carousel[i],
+                    "type": 2
+                })
+            }
+
+            registered(reg_data);
+        }
+    }
+
+    function play() {
+        var config, map, i, i_players = [];
+        settings.style.display = "none";
+        settings_4.style.display = "none";
+        settings_2.style.display = "none";
+        game.style.display = "block";
+
+        for (i = 0; i < players; i += 1) {
+            i_players.push({
+                "name": document.getElementById('p-' + (i + 1) + '-name' + players).value,
+                "color": color_carousel[document.getElementById('p-' + (i + 1) + '-color' + players).options[document.getElementById('p-' + (i + 1) + '-color' + players).selectedIndex].value],
+                "type": parseInt(document.getElementById('p-' + (i + 1) + '-type' + players).options[document.getElementById('p-' + (i + 1) + '-type' + players).selectedIndex].value),
+            });
+
+            console.info(i_players[i].color, i_players[i].type);
+        }
+
+        map = document.getElementById('map' + players).options[document.getElementById('map' + players).selectedIndex].value
+
+        console.info(map);
+
+        if (players === 4) {
+            if(map === "random") {
+                map = four_players[four_players_index[Math.floor(Math.random() * four_players_index.length)]];
+            } else {
+                map = four_players[map];
+            }
+
+        } else {
+            if(map === "random") {
+                map = two_players[two_players_index[Math.floor(Math.random() * two_players_index.length)]];
+            } else {
+                map = two_players[map];
+            }
+        }
+
+        config = {
+            "map": map.map,
+            "types": map.types,
+            "players": i_players
+        }
+
+        SHAPEWARS(document, window, config.map, config.types, config.players);
+    }
+
+
+    function selectColor(obj, name) {
+        obj.className = name;
+    }
+
+    function enableColor(name) {
+        var i;
+        for (i = 0; i < players; i += 1) {
+            document.getElementById('p-' + (i + 1) + '-color' + players).getElementsByClassName(name)[0].disabled = false;
+        }
+    }
+
+    function disableColor(name) {
+        var i;
+        for (i = 0; i < players; i += 1) {
+            document.getElementById('p-' + (i + 1) + '-color' + players).getElementsByClassName(name)[0].disabled = true;
+        }
+    }
+
+    function boxChanged(event) {
+        enableColor(this.className);
+        selectColor(this, this.options[this.selectedIndex].className);
+        disableColor(this.className);
+    }
+
+    register_button.addEventListener('click', register);
+    play_button.addEventListener('click', play);
+    document.getElementById('p-1-color4').addEventListener('change', boxChanged);
+    document.getElementById('p-2-color4').addEventListener('change', boxChanged);
+    document.getElementById('p-3-color4').addEventListener('change', boxChanged);
+    document.getElementById('p-4-color4').addEventListener('change', boxChanged);
+    document.getElementById('p-1-color2').addEventListener('change', boxChanged);
+    document.getElementById('p-2-color2').addEventListener('change', boxChanged);
+})();

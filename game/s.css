@@ -1,22 +1,119 @@
-#b, #f, #m {
+#b, #f {
     position: fixed;
     z-index: 2;
 }
 
-#m {
-    z-index: 1;
-}
-
-#f {
-    border: 3px solid red;
-}
-
 #b {
     z-index: 0;
-    background-color: bisque;
-
 }
 
 body {
     background-color: black;
+    font-family: "Lucida Console", Monaco, monospace
 }
+
+#game, #settings, #settings-4, #settings-2, #end {
+    display: none;
+    z-index: 3;
+}
+
+h1, h4 {
+    width: 400px;
+    text-align: center;
+}
+
+h4 {
+    margin-bottom: 50px;
+}
+
+.middle, button{
+    margin-left: 50% !important;
+    transform: translateX(-50%);
+}
+
+button {
+    background-color: white;
+    margin-top: 20px;
+    padding: 10px;
+}
+
+label {
+    width: 70px;
+    margin: 4px;
+}
+
+.value > input, .value, .value > select {
+    width: 90px;
+    float: right;
+}
+
+#registration, #settings {
+    position: fixed;
+    height: 300px;
+    width: 400px;
+    padding: 10px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+}
+
+#end {
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+}
+
+.player {
+    width: 180px;
+    float: left;
+    margin: 10px;
+
+}
+
+.player input, .player select:not([class*=color]), button {
+    background-color: black;
+    color: white;
+    margin: 4px;
+}
+
+.player select:disabled, .player input:disabled {
+    color: darkgray;
+}
+
+.color-square {
+    width: 30px;
+    height: 30px;
+}
+
+.blue {
+    background-color: blue;
+}
+
+.crimson {
+    background-color: crimson;
+}
+
+.darkgreen {
+    background: darkgreen;
+}
+
+.darkorange {
+    background: darkorange;
+}
+
+.darkslateblue {
+    background: darkslateblue;
+}
+
+.darkturquoise {
+    background: darkturquoise;
+}
+
+.hotpink {
+    background: hotpink;
+}
+
+.indigo {
+    background: indigo;
+}
+

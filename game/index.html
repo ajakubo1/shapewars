@@ -1,17 +1,203 @@
 <!DOCTYPE html>
 <html>
-    <head lang="en">
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
-        <title>Shapewars</title>
-        <link rel="stylesheet" href="s.css"/>
-        <script src="/socket.io/socket.io.js"></script>
-    </head>
-    <body>
+
+<head lang="en">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <title>Shapewars</title>
+    <link rel="stylesheet" href="s.css" />
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+
+    <div id="registration">
+        <h1>Shapewars</h1>
+        <h4>New Game Registration</h4>
+        <div class="player">
+            <label>Name:</label>
+            <div class="value">
+                <input type="text" id="username">
+            </div>
+        </div>
+        <div class="player">
+            <label>Players:</label>
+            <div class="value">
+                <select id="players">
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="player">
+            <label>Mode:</label>
+            <div class="value">
+                <select id="mode">
+                    <option value="0">Single player</option>
+                    <option value="1" disabled="true">Multiplayer</option>
+                </select>
+            </div>
+        </div>
+        <br/>
+        <br/>
+        <button id="register">REGISTER</button>
+    </div>
+    <ul id="log"></ul>
+    <div id="settings">
+        <h1>Shapewars</h1>
+        <h4>Player Details</h4>
+        <div id="settings-4">
+            <div class="player">
+                <label>Player 1:</label>
+                <div class="value">
+                    <input type="text" id="p-1-name4">
+                </div>
+                <select id="p-1-color4">
+                    <option value="0" class="color-square blue"></option>
+                    <option value="1" class="color-square crimson"></option>
+                    <option value="2" class="color-square darkgreen"></option>
+                    <option value="3" class="color-square darkorange"></option>
+                    <option value="4" class="color-square darkslateblue"></option>
+                    <option value="5" class="color-square darkturquoise"></option>
+                    <option value="6" class="color-square hotpink"></option>
+                    <option value="7" class="color-square indigo"></option>
+                </select>
+                <select id="p-1-type4">
+                    <option value="0">Human</option>
+                    <option value="2">CPU</option>
+                </select>
+            </div>
+            <div class="player">
+                <label>Player 2:</label>
+                <input type="text" id="p-2-name4">
+                <select id="p-2-color4">
+                    <option value="0" class="color-square blue"></option>
+                    <option value="1" class="color-square crimson"></option>
+                    <option value="2" class="color-square darkgreen"></option>
+                    <option value="3" class="color-square darkorange"></option>
+                    <option value="4" class="color-square darkslateblue"></option>
+                    <option value="5" class="color-square darkturquoise"></option>
+                    <option value="6" class="color-square hotpink"></option>
+                    <option value="7" class="color-square indigo"></option>
+                </select>
+                <select id="p-2-type4">
+                    <option value="0">Human</option>
+                    <option value="2">CPU</option>
+                </select>
+            </div>
+            <div class="player">
+                <label>Player 3:</label>
+                <input type="text" id="p-3-name4">
+                <select id="p-3-color4">
+                    <option value="0" class="color-square blue"></option>
+                    <option value="1" class="color-square crimson"></option>
+                    <option value="2" class="color-square darkgreen"></option>
+                    <option value="3" class="color-square darkorange"></option>
+                    <option value="4" class="color-square darkslateblue"></option>
+                    <option value="5" class="color-square darkturquoise"></option>
+                    <option value="6" class="color-square hotpink"></option>
+                    <option value="7" class="color-square indigo"></option>
+                </select>
+                <select id="p-3-type4">
+                    <option value="0">Human</option>
+                    <option value="2">CPU</option>
+                </select>
+            </div>
+            <div class="player">
+                <label>Player 4:</label>
+                <input type="text" id="p-4-name4">
+                <select id="p-4-color4">
+                    <option value="0" class="color-square blue"></option>
+                    <option value="1" class="color-square crimson"></option>
+                    <option value="2" class="color-square darkgreen"></option>
+                    <option value="3" class="color-square darkorange"></option>
+                    <option value="4" class="color-square darkslateblue"></option>
+                    <option value="5" class="color-square darkturquoise"></option>
+                    <option value="6" class="color-square hotpink"></option>
+                    <option value="7" class="color-square indigo"></option>
+                </select>
+                <select id="p-4-type4">
+                    <option value="0">Human</option>
+                    <option value="2">CPU</option>
+                </select>
+            </div>
+
+            <div class="player middle">
+                Map:
+                <select id="map4">
+                    <option value="random">Random</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="cross">Cross</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="settings-2">
+            <div class="player">
+                <label>Player 1:</label>
+                <input type="text" id="p-1-name2">
+                <select id="p-1-color2">
+                    <option value="0" class="color-square blue"></option>
+                    <option value="1" class="color-square crimson"></option>
+                    <option value="2" class="color-square darkgreen"></option>
+                    <option value="3" class="color-square darkorange"></option>
+                    <option value="4" class="color-square darkslateblue"></option>
+                    <option value="5" class="color-square darkturquoise"></option>
+                    <option value="6" class="color-square hotpink"></option>
+                    <option value="7" class="color-square indigo"></option>
+                </select>
+                <select id="p-1-type2">
+                    <option value="0">Human</option>
+                    <option value="2">CPU</option>
+                </select>
+            </div>
+            <div class="player">
+                <label>Player 2:</label>
+                <input type="text" id="p-2-name2">
+                <select id="p-2-color2">
+                    <option value="0" class="color-square blue"></option>
+                    <option value="1" class="color-square crimson"></option>
+                    <option value="2" class="color-square darkgreen"></option>
+                    <option value="3" class="color-square darkorange"></option>
+                    <option value="4" class="color-square darkslateblue"></option>
+                    <option value="5" class="color-square darkturquoise"></option>
+                    <option value="6" class="color-square hotpink"></option>
+                    <option value="7" class="color-square indigo"></option>
+                </select>
+                <select id="p-2-type2">
+                    <option value="0">Human</option>
+                    <option value="2">CPU</option>
+                </select>
+            </div>
+
+            <div class="player middle">
+                Map:
+                <select id="map2">
+                    <option value="random">Random</option>
+                    <option value="testing">Testing</option>
+                    <option value="snake">Snake</option>
+                    <option value="tauros">Tauros</option>
+                </select>
+            </div>
+        </div>
+
+        <br/>
+        <button id="play">Play</button>
+    </div>
+
+
+    <div id="game">
         <canvas id="b"></canvas>
-        <canvas id="m"></canvas>
         <canvas id="f"></canvas>
-        <script src="enums.js"></script>
-        <script src="c.js"></script>
-    </body>
+    </div>
+
+    <div id="end">
+        <h1>GAME ENDED!</h1>
+        <h1 id="winresult">YOU HAVE WON!</h1>
+    </div>
+    <script src="enums.js"></script>
+    <script src="c.js"></script>
+</body>
+
 </html>
