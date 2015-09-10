@@ -1,10 +1,14 @@
 Todo:
 
 
-    * checking winning conditions? :D
+    //CZWARTEK
     * visualize winning dialog :D
+
+
     * first page for the game!
     * remove middleground
+
+    //PIĄTEK
     * REVERSING the objective?!
 
         * change the objective after some timeout (60 seconds)
@@ -45,11 +49,13 @@ Todo:
         TODO: Objective indicator
         TODO: Restriction indicator
 
+    /SOBOTA?
+    * Network communication
 
     * adding new listeners (touch listener)
     * Pausing game...
     * Visualise minion generation
-    * Network communication
+
     * Zoom in/zoom out
     * animations for changing squares?
     * animations
@@ -58,6 +64,7 @@ Todo:
 
 Done:
 
+    * checking winning conditions? :D
     * map generation - I will create types of maps manually, it will be nicer :)
     * bugs: monitor attacked_tile for user
     * check what happens if you choose to attack another square DONE
