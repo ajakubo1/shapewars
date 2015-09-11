@@ -4,9 +4,7 @@ Todo:
     //CZWARTEK
     * visualize winning dialog :D
 
-
-    * first page for the game!
-    * remove middleground
+    * winning dialog!
 
     //PIĄTEK
     * REVERSING the objective?!
@@ -64,6 +62,9 @@ Todo:
 
 Done:
 
+
+    * first page for the game!
+    * remove middleground
     * checking winning conditions? :D
     * map generation - I will create types of maps manually, it will be nicer :)
     * bugs: monitor attacked_tile for user

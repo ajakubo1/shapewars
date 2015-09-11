@@ -45,6 +45,21 @@ var ENUM_ORDER = {
     "moving": 3
 };
 
+var ENUM_OBJECTIVES = {
+    "CONQUER_ALL": 0,
+    "CONQUER_PLAYER": 1,
+    "FREE_FOR_ALL": 2,
+    //"CONQUER_TILE": 3
+}
+
+var ENUM_RESTRICTIONS = {
+    "NONE": 0,
+    "NEUTRAL": 1,
+    "PLAYERS": 2,
+    "PEACE": 3,
+    "ONE_PLAYER": 4
+}
+
 var ENUM_GLOBAL = {
     width: 680,
     height: 480
