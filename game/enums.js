@@ -61,6 +61,6 @@ var ENUM_RESTRICTIONS = {
 }
 
 var ENUM_GLOBAL = {
-    width: 680,
+    width: 845,
     height: 480
 };

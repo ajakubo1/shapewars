@@ -19,7 +19,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         background_ctx = background.getContext('2d'),
 
         //how many background fields fits into screen width/height
-        screen_width = 4,
+        screen_width = 5,
         screen_height = 3,
         //Background square properties
         background_square_width = 160,
@@ -668,24 +668,40 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         }
 
         foreground_ctx.textAlign = "start";
-        foreground_ctx.fillText("REVERSAL: " + Math.round(objective_time / 1000), 10, ENUM_GLOBAL.height - 10);
+        foreground_ctx.fillText("OBJECTIVE REVERSAL IN " + Math.round(objective_time / 1000), 10, ENUM_GLOBAL.height - 10);
 
         foreground_ctx.textAlign = "end";
         if (objective_restrictions === ENUM_RESTRICTIONS.NONE) {
             foreground_ctx.fillText("NO RESTRICTIONS", ENUM_GLOBAL.width - 10, 20);
         } else if (objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL) {
-            foreground_ctx.fillText("ATTACK NEUTRALS ONLY",  ENUM_GLOBAL.width - 10, 20);
+            foreground_ctx.fillText("ATTACK NEUTRALS ONLY", ENUM_GLOBAL.width - 10, 20);
         } else if (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
-            foreground_ctx.fillText("ATTACK ONLY: " + player_name[objective_additional[current_player]] + '(' + player_color[objective_additional[current_player]] + ')',  ENUM_GLOBAL.width - 10, 20);
+            foreground_ctx.fillText("ATTACK ONLY: " + player_name[objective_additional[current_player]] + '(' + player_color[objective_additional[current_player]] + ')', ENUM_GLOBAL.width - 10, 20);
 
             foreground_ctx.fillStyle = player_color[objective_additional[current_player]];
-            foreground_ctx.fillText('(' + player_color[objective_additional[current_player]] + ')',  ENUM_GLOBAL.width - 10, 20);
+            foreground_ctx.fillText('(' + player_color[objective_additional[current_player]] + ')', ENUM_GLOBAL.width - 10, 20);
             foreground_ctx.fillStyle = "white";
 
         } else if (objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
-            foreground_ctx.fillText("NO SHAPE CAN BE ATTACKED",  ENUM_GLOBAL.width - 10, 20);
+            foreground_ctx.fillText("NO SHAPE CAN BE ATTACKED", ENUM_GLOBAL.width - 10, 20);
         } else if (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
-            foreground_ctx.fillText("ATTACK PLAYERS ONLY",  ENUM_GLOBAL.width - 10, 20);
+            foreground_ctx.fillText("ATTACK PLAYERS ONLY", ENUM_GLOBAL.width - 10, 20);
+        }
+    }
+
+    function render_playerLost() {
+        foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, ENUM_GLOBAL.height, "black", "black", 0.5), 0, 0);
+        foreground_ctx.textAlign = "center";
+        foreground_ctx.fillStyle = "red";
+            foreground_ctx.font = "80px monospace";
+        foreground_ctx.fillText("YOU HAVE LOST...", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height / 2 + 40);
+        foreground_ctx.font = "30px monospace";
+        foreground_ctx.fillStyle = "white";
+
+        if (mobileCheck()) {
+            foreground_ctx.fillText("Touch screen to restart game", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height / 2 + 120);
+        } else {
+            foreground_ctx.fillText("Click to restart game", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height / 2 + 120);
         }
     }
 
@@ -808,6 +824,9 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         render_minions();
         render_map();
         render_information();
+        if (player_dead[current_player] === 1) {
+            render_playerLost();
+        }
     }
 
     function logic(count) {
@@ -872,8 +891,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                 foreground_ctx.fillStyle = "green";
                 foreground_ctx.font = "80px monospace";
                 foreground_ctx.fillText("YOU HAVE WON!", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height / 2 + 40);
-            } else if (winner === undefined) {
-
             } else {
                 foreground_ctx.fillStyle = "red";
                 foreground_ctx.font = "80px monospace";
@@ -903,7 +920,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
 
     function countEmpty() {
-        var sum = 0, i;
+        var sum = 0,
+            i;
 
         for (i = 0; i < player_id.length; i += 1) {
             sum += player_conquered[i];
@@ -913,7 +931,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function randomRestriction() {
-        var toReturn = restrictions[Math.floor(Math.random() * restrictions.length)], i;
+        var toReturn = restrictions[Math.floor(Math.random() * restrictions.length)],
+            i;
 
         if (toReturn === ENUM_RESTRICTIONS.NEUTRAL && countEmpty() < player_id.length) {
             console.info('chosen neutral, choose another restriction');
@@ -928,7 +947,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function chooseRestriction() {
-        var toReturn = randomRestriction(), i;
+        var toReturn = randomRestriction(),
+            i;
 
         if (toReturn === ENUM_RESTRICTIONS.ONE_PLAYER) {
             restriction_additional = [];
@@ -948,7 +968,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             objective_time = 10000;
             if (master) {
                 for (i = 0; i < player_id.length; i += 1) {
-                    if(player_type[i] === 2) {
+                    if (player_type[i] === 2) {
                         attack_target[i] = -1;
                     }
                 }
@@ -960,7 +980,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
             if (master) {
                 for (i = 0; i < player_id.length; i += 1) {
-                    if(player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== 9) {
+                    if (player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== 9) {
                         attack_target[i] = -1;
                     }
                 }
@@ -972,7 +992,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
             if (master) {
                 for (i = 0; i < player_id.length; i += 1) {
-                    if(player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== restriction_additional[i]) {
+                    if (player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== restriction_additional[i]) {
                         attack_target[i] = -1;
                     }
                 }
@@ -984,7 +1004,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
             if (master) {
                 for (i = 0; i < player_id.length; i += 1) {
-                    if(player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] === 9) {
+                    if (player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] === 9) {
                         attack_target[i] = -1;
                     }
                 }
@@ -1024,9 +1044,9 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         objective_changed = 80;
         var i;
         if (objective === undefined) {
-            objective = ENUM_OBJECTIVES.CONQUER_ALL;
+            objective = ENUM_OBJECTIVES.FREE_FOR_ALL;
             objective_restrictions = ENUM_RESTRICTIONS.NONE;
-            objective_time = 30000;
+            objective_time = 1200000;
         } else {
 
             objective = chooseObjective();
@@ -1034,7 +1054,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         }
 
 
-        if(objective === ENUM_OBJECTIVES.CONQUER_ALL) {
+        if (objective === ENUM_OBJECTIVES.CONQUER_ALL) {
             console.info('New Objective: CONQUER_ALL');
         } else if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
             console.info('New Objective: CONQUER_PLAYER');
@@ -1042,7 +1062,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             console.info('New Objective: FREE_FOR_ALL');
         }
 
-        if(objective_restrictions === ENUM_RESTRICTIONS.NONE) {
+        if (objective_restrictions === ENUM_RESTRICTIONS.NONE) {
             console.info('New restriction: NONE');
         } else if (objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL) {
             console.info('New restriction: NEUTRAL');
@@ -1524,7 +1544,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function listener_mouseup(e) {
-        if (running) {
+        if (running && player_dead[current_player] === 0) {
             foreground.removeEventListener('mousemove', listener_mousemove);
             foreground.removeEventListener('mouseout', listener_mouseout);
             if (screen_moved === false) {

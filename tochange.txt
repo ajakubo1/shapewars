@@ -34,7 +34,7 @@ ENUM_ORDER.attack               1
 ENUM_ORDER.defend               2
 ENUM_ORDER.moving               3
 
-ENUM_GLOBAL.width               680
+ENUM_GLOBAL.width               845
 ENUM_GLOBAL.height              480
 
 

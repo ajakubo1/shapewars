@@ -1,5 +1,9 @@
 Todo:
 
+
+    * Choose more randomly players to attack
+    * There is some attack bug???
+
     /SOBOTA?
     * Network communication
 
@@ -15,6 +19,7 @@ Todo:
 
 Done:
 
+    * React when current_player looses (doesn't have any fields left)
     * REVERSING the objective?!
 
         * change the objective after some timeout (60 seconds)
