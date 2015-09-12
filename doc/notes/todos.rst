@@ -1,9 +1,8 @@
 Todo:
 
 
-    * print why someone won
 
-
+    * Add description
     * Change how manu looks
     * music
 
@@ -20,6 +19,7 @@ Todo:
 
 Done:
 
+    * print why someone won
     * Choose more randomly players to attack
     * There is some attack bug???
     * stack trace unfinished with chosing new player...

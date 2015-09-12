@@ -5,7 +5,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     var map, map_width, map_height,
         map_conquest, map_conquestHealth, map_conquestProgress, map_conquestPlayer, map_conquestAttacker, map_minion, map_minion_progress, map_type,
         //Player-related variables
-        player_id, player_name, player_color, player_type, player_conquered, player_availableMinions, player_minions, player_dead,
+        player_name, player_color, player_type, player_availableMinions, player_minions, player_dead,
         //What is the player that plays the game
         current_player,
 
@@ -33,9 +33,9 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         scale,
         step_x = 32,
         step_y = 30,
-        zoom = 0,
+        /*zoom = 0,
         zoom_limit_in = 0,
-        zoom_limit_out = 1,
+        zoom_limit_out = 1,*/
 
         //Listeners
         screen_moved = false,
@@ -74,7 +74,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         restriction_additional,
         objective_time,
         reverse_timer,
-        temp,
 
         objectives = [
             ENUM_OBJECTIVES.CONQUER_ALL,
@@ -468,15 +467,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
                 if (conquered && map_conquest[i] > 1) {
                     map_conquest[i] = -1;
-                    player_conquered[player] += 1;
-
-                    if (map[i] !== 9) {
-                        player_conquered[map[i]] -= 1;
-
-                        if(player_conquered[map[i]] === 0) {
-                            player_dead[map[i]] = 1;
-                        }
-                    }
                     last_conquest_id[player] = map[i];
                     map[i] = player;
                 } else if (!conquered && map_conquest[i] === -1) {
@@ -668,7 +658,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             foreground_ctx.fillStyle = "white";
 
         } else if (objective === ENUM_OBJECTIVES.FREE_FOR_ALL) {
-            foreground_ctx.fillText("NO SHAPE WINS THIS ROUND", ENUM_GLOBAL.width - 10, ENUM_GLOBAL.height - 10);
+            foreground_ctx.fillText("FLATLAND FESTIVAL: NO SHAPE WINS THIS ROUND", ENUM_GLOBAL.width - 10, ENUM_GLOBAL.height - 10);
         }
 
         foreground_ctx.textAlign = "start";
@@ -687,7 +677,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             foreground_ctx.fillStyle = "white";
 
         } else if (objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
-            foreground_ctx.fillText("NO SHAPE CAN BE ATTACKED", ENUM_GLOBAL.width - 10, 20);
+            foreground_ctx.fillText("A TRUCE! NO SHAPE CAN BE ATTACKED", ENUM_GLOBAL.width - 10, 20);
         } else if (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
             foreground_ctx.fillText("ATTACK PLAYERS ONLY", ENUM_GLOBAL.width - 10, 20);
         }
@@ -850,7 +840,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             winner, i;
 
         if (objective === ENUM_OBJECTIVES.CONQUER_ALL) {
-            for (i = 0; i < player_id.length; i += 1) {
+            for (i = 0; i < player_name.length; i += 1) {
                 if (playerHasSquares(i)) {
                     resolved = true;
                     if (winner != undefined) {
@@ -861,7 +851,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                 }
             }
         } else if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
-            for (i = 0; i < player_id.length; i += 1) {
+            for (i = 0; i < player_name.length; i += 1) {
                 if (playerHasSquares(i)) {
                     if (!playerHasSquares(objective_additional[i]) && last_conquest_id[i] === objective_additional[i]) {
                         winner = i;
@@ -917,8 +907,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                 clearTimeout(reverse_timer);
             }
         } else {
-            for (i = 0; i < player_id.length; i += 1) {
-                if (player_conquered[i] === 0) {
+            for (i = 0; i < player_name.length; i += 1) {
+                if (!playerHasSquares(i)) {
                     player_dead[i] = 1;
                     //PLAYER IS DEAD
                 }
@@ -961,12 +951,12 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             toReturn = randomRestriction();
         }
 
-        if (toReturn === ENUM_RESTRICTIONS.NEUTRAL && countEmpty() < player_id.length) {
+        if (toReturn === ENUM_RESTRICTIONS.NEUTRAL && countEmpty() < player_name.length) {
             console.info('chosen neutral, choose another restriction');
             toReturn = randomRestriction();
         }
 
-        if ((toReturn === ENUM_RESTRICTIONS.PLAYERS || toReturn === ENUM_RESTRICTIONS.ONE_PLAYER) && countEmpty() > player_id.length) {
+        if ((toReturn === ENUM_RESTRICTIONS.PLAYERS || toReturn === ENUM_RESTRICTIONS.ONE_PLAYER) && countEmpty() > player_name.length) {
             console.info('chosen PLAYERS or ONE_PLAYER, choose another restriction');
             toReturn = randomRestriction();
         }
@@ -976,9 +966,9 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     function getRandomUnselectedPlayer(player, side) {
         var toReturn;
         if(side) {
-            toReturn = (player + 1) % player_id.length;
+            toReturn = (player + 1) % player_name.length;
         } else {
-            toReturn = (player - 1 + player_id.length) % player_id.length;
+            toReturn = (player - 1 + player_name.length) % player_name.length;
         }
         if(!playerHasSquares(toReturn)) {
             if(side) {
@@ -993,13 +983,13 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     function isEveryoneDead() {
         var dead = 0, i;
 
-        for (i = 0; i < player_id.length; i += 1) {
+        for (i = 0; i < player_name.length; i += 1) {
             if (player_dead[i] === 1) {
                 dead += 1;
             }
         }
 
-        if(dead === player_id.length - 1) {
+        if(dead === player_name.length - 1) {
             return true;
         } else {
             return false;
@@ -1009,6 +999,10 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     function chooseRestriction() {
         var toReturn = randomRestriction(),
             i, side;
+
+        if (toReturn === ENUM_RESTRICTIONS.PLAYERS && player_name.length === 2) {
+            toReturn = ENUM_RESTRICTIONS.ONE_PLAYER;
+        }
 
         if(toReturn === objective_restrictions) {
             toReturn = chooseRestriction();
@@ -1023,9 +1017,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                     console.info('Restrictions same as objectives');
                 } else {
                     restriction_additional = [];
-                    temp = [];
                     side = Math.random() < 0.5 ? true : false;
-                    for (i = 0; i < player_id.length; i += 1) {
+                    for (i = 0; i < player_name.length; i += 1) {
                         if (playerHasSquares(i)) {
                             restriction_additional[i] = getRandomUnselectedPlayer(i, side);
                         }
@@ -1038,7 +1031,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         if (toReturn === ENUM_RESTRICTIONS.PEACE) {
             objective_time = 10000;
             if (master) {
-                for (i = 0; i < player_id.length; i += 1) {
+                for (i = 0; i < player_name.length; i += 1) {
                     if (player_type[i] === 2) {
                         attack_target[i] = -1;
                     }
@@ -1050,7 +1043,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             objective_time = 15000;
 
             if (master) {
-                for (i = 0; i < player_id.length; i += 1) {
+                for (i = 0; i < player_name.length; i += 1) {
                     if (player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== 9) {
                         attack_target[i] = -1;
                     }
@@ -1062,7 +1055,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             objective_time = 15000;
 
             if (master) {
-                for (i = 0; i < player_id.length; i += 1) {
+                for (i = 0; i < player_name.length; i += 1) {
                     if (player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== restriction_additional[i]) {
                         attack_target[i] = -1;
                     }
@@ -1074,7 +1067,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             objective_time = 20000;
 
             if (master) {
-                for (i = 0; i < player_id.length; i += 1) {
+                for (i = 0; i < player_name.length; i += 1) {
                     if (player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] === 9) {
                         attack_target[i] = -1;
                     }
@@ -1101,9 +1094,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
         if (toReturn === ENUM_OBJECTIVES.CONQUER_PLAYER) {
             objective_additional = [];
-            temp = [];
             side = Math.random() < 0.5 ? true : false;
-            for (i = 0; i < player_id.length; i += 1) {
+            for (i = 0; i < player_name.length; i += 1) {
                 if (playerHasSquares(i)) {
                     objective_additional[i] = getRandomUnselectedPlayer(i, side);
                 }
@@ -1473,8 +1465,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     function generate() {
         var i;
         background_square = new Array(10);
-        minion_square = new Array(player_id.length);
-        progress_square = new Array(player_id.length);
+        minion_square = new Array(player_name.length);
+        progress_square = new Array(player_name.length);
         attack_indicator = generate_attackSquare("red", "red");
         //attack_indicator.width = background_square_width + 10;
         //attack_indicator.height = background_square_height + 10;
@@ -1488,7 +1480,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             background_square[i] = undefined;
         }
         background_square[9] = generate_backgroundSquare("Orange", "Gold");
-        for (i = 0; i < player_id.length; i += 1) {
+        for (i = 0; i < player_name.length; i += 1) {
             background_square[i] = generate_backgroundSquare(player_color[i], "Gold");
             minion_square[i] = generate_minionSquare(player_color[i]);
             progress_square[i] = generate_progressSquare(player_color[i]);
@@ -1574,7 +1566,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         } else if (code === 39 || code === 68) {
             current_x += step_x;
             moved = true;
-        } else if (code === 107) {
+        } /*else if (code === 107) {
             if (zoom > zoom_limit_in) {
                 zoom -= 1;
                 background_square_width *= 2;
@@ -1598,7 +1590,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                 recountGlobals();
                 redrawBackground();
             }
-        }
+        }*/
 
         if (moved) {
             helper_guardBorders();
@@ -1669,12 +1661,10 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         var i, j, k;
 
         //Initialize player-related variables
-        player_id = new Int8Array(config_players.length);
         player_name = new Array(config_players.length);
         player_color = new Array(config_players.length);
         player_type = new Int8Array(config_players.length);
         last_conquest_id = new Int8Array(config_players.length);
-        player_conquered = new Int8Array(config_players.length);
         player_dead = new Int8Array(config_players.length);
         player_availableMinions = new Int8Array(config_players.length);
         attack_target = new Int16Array(config_players.length);
@@ -1684,14 +1674,13 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
         //Fill player-related variables
         for (i = 0; i < config_players.length; i += 1) {
-            player_id[i] = i;
             player_name[i] = config_players[i].name;
             player_color[i] = config_players[i].color;
             player_type[i] = config_players[i].type;
             if (player_type[i] === 0) {
                 current_player = i;
             }
-            player_conquered[i] = 1;
+
             player_availableMinions[i] = 3;
             attack_target[i] = -1;
             backup_target[i] = -1;
