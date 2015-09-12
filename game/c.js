@@ -69,6 +69,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         objective,
         objective_restrictions,
         restriction_broken = 0,
+        objective_changed = 0,
         objective_additional,
         restriction_additional,
         objective_time,
@@ -620,45 +621,71 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function render_information() {
-        foreground_ctx.drawImage(generate_minionStatSquare(0, 0, 100, 30, "black", "black", 0.8), ENUM_GLOBAL.width - 100, ENUM_GLOBAL.height - 30);
-        foreground_ctx.drawImage(generate_minionStatSquare(0, 0, 165, 30, "black", "black", 0.8), 0, ENUM_GLOBAL.height - 30);
-        if (restriction_broken === 0) {
-            foreground_ctx.drawImage(generate_minionStatSquare(0, 0, 210, 30, "black", "black", 0.8), 0, 0);
+        foreground_ctx.font = "18px monospace";
+        foreground_ctx.fillStyle = "white";
+        if (objective_changed === 0) {
+            foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "black", "black", 0.8), 0, ENUM_GLOBAL.height - 30);
         } else {
-            if(restriction_broken % 15 < 5) {
-                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, 210, 30, "black", "black", 0.8), 0, 0);
-            } else if (restriction_broken % 15 < 10) {
-                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, 210, 30, "crimson", "crimson", 0.8), 0, 0);
+            if (objective_changed % 15 < 5) {
+                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "black", "black", 0.8), 0, ENUM_GLOBAL.height - 30);
+            } else if (objective_changed % 15 < 10) {
+                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "green", "green", 0.8), 0, ENUM_GLOBAL.height - 30);
             } else {
-                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, 210, 30, "red", "red", 0.8), 0, 0);
+                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "darkgreen", "darkgreen", 0.8), 0, ENUM_GLOBAL.height - 30);
             }
+            foreground_ctx.textAlign = "center";
+            foreground_ctx.fillText("CHANGED!", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height - 10);
+            objective_changed -= 1;
+        }
 
+
+        if (restriction_broken === 0) {
+            foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "black", "black", 0.8), 0, 0);
+        } else {
+            if (restriction_broken % 15 < 5) {
+                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "black", "black", 0.8), 0, 0);
+            } else if (restriction_broken % 15 < 10) {
+                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "crimson", "crimson", 0.8), 0, 0);
+            } else {
+                foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, 30, "red", "red", 0.8), 0, 0);
+            }
             restriction_broken -= 1;
         }
 
-        foreground_ctx.font = "18px monospace";
-        foreground_ctx.fillStyle = "white";
+        foreground_ctx.textAlign = "end";
 
-        if(objective === ENUM_OBJECTIVES.CONQUER_ALL) {
-            foreground_ctx.fillText("CONQUER", ENUM_GLOBAL.width - 90, ENUM_GLOBAL.height - 10);
+        if (objective === ENUM_OBJECTIVES.CONQUER_ALL) {
+            foreground_ctx.fillText("CONQUER ALL PLAYERS", ENUM_GLOBAL.width - 10, ENUM_GLOBAL.height - 10);
         } else if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
-            foreground_ctx.fillText("CONQUER:", ENUM_GLOBAL.width - 90, ENUM_GLOBAL.height - 10);
+            foreground_ctx.fillText("CONQUER: " + player_name[objective_additional[current_player]] + '(' + player_color[objective_additional[current_player]] + ')', ENUM_GLOBAL.width - 10, ENUM_GLOBAL.height - 10);
+
+            foreground_ctx.fillStyle = player_color[objective_additional[current_player]];
+            foreground_ctx.fillText('(' + player_color[objective_additional[current_player]] + ')', ENUM_GLOBAL.width - 10, ENUM_GLOBAL.height - 10);
+            foreground_ctx.fillStyle = "white";
+
         } else if (objective === ENUM_OBJECTIVES.FREE_FOR_ALL) {
-            foreground_ctx.fillText("FREE", ENUM_GLOBAL.width - 90, ENUM_GLOBAL.height - 10);
+            foreground_ctx.fillText("NO SHAPE WINS THIS ROUND", ENUM_GLOBAL.width - 10, ENUM_GLOBAL.height - 10);
         }
 
+        foreground_ctx.textAlign = "start";
         foreground_ctx.fillText("REVERSAL: " + Math.round(objective_time / 1000), 10, ENUM_GLOBAL.height - 10);
 
+        foreground_ctx.textAlign = "end";
         if (objective_restrictions === ENUM_RESTRICTIONS.NONE) {
-            foreground_ctx.fillText("NO RESTRICTIONS :)", 10, 20);
+            foreground_ctx.fillText("NO RESTRICTIONS", ENUM_GLOBAL.width - 10, 20);
         } else if (objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL) {
-            foreground_ctx.fillText("ONLY NEUTRAL", 10, 20);
+            foreground_ctx.fillText("ATTACK NEUTRALS ONLY",  ENUM_GLOBAL.width - 10, 20);
         } else if (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
-            foreground_ctx.fillText("ONLY ATTACK: ", 10, 20);
+            foreground_ctx.fillText("ATTACK ONLY: " + player_name[objective_additional[current_player]] + '(' + player_color[objective_additional[current_player]] + ')',  ENUM_GLOBAL.width - 10, 20);
+
+            foreground_ctx.fillStyle = player_color[objective_additional[current_player]];
+            foreground_ctx.fillText('(' + player_color[objective_additional[current_player]] + ')',  ENUM_GLOBAL.width - 10, 20);
+            foreground_ctx.fillStyle = "white";
+
         } else if (objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
-            foreground_ctx.fillText("THERE IS PEACE...", 10, 20);
+            foreground_ctx.fillText("NO SHAPE CAN BE ATTACKED",  ENUM_GLOBAL.width - 10, 20);
         } else if (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
-            foreground_ctx.fillText("ATTACK PLAYERS", 10, 20);
+            foreground_ctx.fillText("ATTACK PLAYERS ONLY",  ENUM_GLOBAL.width - 10, 20);
         }
     }
 
@@ -671,7 +698,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
      *********************************************************************/
 
     function ai_attack(player) {
-        if (decision_timer[player] < 450 || objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
+        if (decision_timer[player] < 550 || objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
             decision_timer[player] += 1;
         } else if (player_availableMinions[player] > 0) {
             decision_timer[player] = 0;
@@ -687,42 +714,42 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                     }
                     temp = helper_remapPoint(x - 1, y, map_width);
                     if (map[temp] !== 8 && map[temp] !== undefined && map[temp] !== player) {
-                        if((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
+                        if ((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[temp] !== 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && map[temp] === restriction_additional[player]) ||
-                             objective_restrictions === ENUM_RESTRICTIONS.NONE) {
+                            objective_restrictions === ENUM_RESTRICTIONS.NONE) {
 
-                           toAttack.push(temp);
+                            toAttack.push(temp);
                         }
                     }
                     temp = helper_remapPoint(x + 1, y, map_width);
                     if (map[temp] !== 8 && map[temp] !== undefined && map[temp] !== player) {
-                        if((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
+                        if ((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[temp] !== 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && map[temp] === restriction_additional[player]) ||
-                             objective_restrictions === ENUM_RESTRICTIONS.NONE) {
+                            objective_restrictions === ENUM_RESTRICTIONS.NONE) {
 
-                           toAttack.push(temp);
+                            toAttack.push(temp);
                         }
                     }
                     temp = helper_remapPoint(x, y - 1, map_width);
                     if (map[temp] !== 8 && map[temp] !== undefined && map[temp] !== player) {
-                        if((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
+                        if ((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[temp] !== 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && map[temp] === restriction_additional[player]) ||
-                             objective_restrictions === ENUM_RESTRICTIONS.NONE) {
+                            objective_restrictions === ENUM_RESTRICTIONS.NONE) {
 
-                           toAttack.push(temp);
+                            toAttack.push(temp);
                         }
                     }
                     temp = helper_remapPoint(x, y + 1, map_width);
                     if (map[temp] !== 8 && map[temp] !== undefined && map[temp] !== player) {
-                        if((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
+                        if ((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && map[temp] === 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[temp] !== 9) ||
                             (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && map[temp] === restriction_additional[player]) ||
-                             objective_restrictions === ENUM_RESTRICTIONS.NONE) {
+                            objective_restrictions === ENUM_RESTRICTIONS.NONE) {
 
-                           toAttack.push(temp);
+                            toAttack.push(temp);
                         }
                     }
                 }
@@ -752,10 +779,10 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                             attack_target[i] = -1;
                         }
 
-                        if((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && (map[attack_target[i]] !== 9 && map[attack_target[i]] !== i)) ||
-                          (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[attack_target[i]] === 9) ||
-                          (objective_restrictions === ENUM_RESTRICTIONS.PEACE) ||
-                          (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && (map[attack_target[i]] !== restriction_additional[i] && map[attack_target[i]] !== i))) {
+                        if ((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && (map[attack_target[i]] !== 9 && map[attack_target[i]] !== i)) ||
+                            (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[attack_target[i]] === 9) ||
+                            (objective_restrictions === ENUM_RESTRICTIONS.PEACE) ||
+                            (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && (map[attack_target[i]] !== restriction_additional[i] && map[attack_target[i]] !== i))) {
                             attack_target[i] = -1;
                         }
                     }
@@ -796,13 +823,14 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function check_winningConditions() {
-        var resolved = false, winner, i;
+        var resolved = false,
+            winner, i;
 
-        if(objective === ENUM_OBJECTIVES.CONQUER_ALL) {
+        if (objective === ENUM_OBJECTIVES.CONQUER_ALL) {
             for (i = 0; i < player_id.length; i += 1) {
                 if (player_conquered[i] > 0) {
                     resolved = true;
-                    if(winner != undefined) {
+                    if (winner != undefined) {
                         resolved = false;
                         break;
                     }
@@ -815,7 +843,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
             for (i = 0; i < player_id.length; i += 1) {
                 if (player_conquered[i] > 0) {
-                    if(player_conquered[objective_additional[i]] === 0 && last_conquest_id[i] === objective_additional[i]) {
+                    if (player_conquered[objective_additional[i]] === 0 && last_conquest_id[i] === objective_additional[i]) {
                         winner = i;
                         resolved = true;
                         break;
@@ -854,18 +882,18 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             foreground_ctx.font = "30px monospace";
             foreground_ctx.fillStyle = "white";
 
-            if(mobileCheck()) {
+            if (mobileCheck()) {
                 foreground_ctx.fillText("Touch screen to restart game", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height / 2 + 120);
             } else {
                 foreground_ctx.fillText("Click to restart game", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height / 2 + 120);
             }
 
-            if(reverse_timer !== undefined) {
+            if (reverse_timer !== undefined) {
                 clearTimeout(reverse_timer);
             }
         } else {
             for (i = 0; i < player_id.length; i += 1) {
-                if(player_conquered[i] === 0) {
+                if (player_conquered[i] === 0) {
                     player_dead[i] = 1;
                     //PLAYER IS DEAD
                 }
@@ -873,52 +901,160 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         }
     }
 
+
+    function countEmpty() {
+        var sum = 0, i;
+
+        for (i = 0; i < player_id.length; i += 1) {
+            sum += player_conquered[i];
+        }
+
+        return map.length - sum;
+    }
+
+    function randomRestriction() {
+        var toReturn = restrictions[Math.floor(Math.random() * restrictions.length)], i;
+
+        if (toReturn === ENUM_RESTRICTIONS.NEUTRAL && countEmpty() < player_id.length) {
+            console.info('chosen neutral, choose another restriction');
+            toReturn = randomRestriction();
+        }
+
+        if ((toReturn === ENUM_RESTRICTIONS.PLAYERS || toReturn === ENUM_RESTRICTIONS.ONE_PLAYER) && countEmpty() > player_id.length) {
+            console.info('chosen PLAYERS or ONE_PLAYER, choose another restriction');
+            toReturn = randomRestriction();
+        }
+        return toReturn;
+    }
+
+    function chooseRestriction() {
+        var toReturn = randomRestriction(), i;
+
+        if (toReturn === ENUM_RESTRICTIONS.ONE_PLAYER) {
+            restriction_additional = [];
+            for (i = 0; i < player_id.length; i += 1) {
+                if (i === player_id.length - 1) {
+                    restriction_additional[i] = 0;
+                } else {
+                    restriction_additional[i] = i + 1;
+                }
+
+                console.info(player_color[i], 'can only attack', player_color[restriction_additional[i]]);
+            }
+
+        }
+
+        if (toReturn === ENUM_RESTRICTIONS.PEACE) {
+            objective_time = 10000;
+            if (master) {
+                for (i = 0; i < player_id.length; i += 1) {
+                    if(player_type[i] === 2) {
+                        attack_target[i] = -1;
+                    }
+                }
+            }
+        }
+
+        if (toReturn === ENUM_RESTRICTIONS.NEUTRAL) {
+            objective_time = 15000;
+
+            if (master) {
+                for (i = 0; i < player_id.length; i += 1) {
+                    if(player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== 9) {
+                        attack_target[i] = -1;
+                    }
+                }
+            }
+        }
+
+        if (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
+            objective_time = 15000;
+
+            if (master) {
+                for (i = 0; i < player_id.length; i += 1) {
+                    if(player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] !== restriction_additional[i]) {
+                        attack_target[i] = -1;
+                    }
+                }
+            }
+        }
+
+        if (toReturn === ENUM_RESTRICTIONS.PLAYERS) {
+            objective_time = 20000;
+
+            if (master) {
+                for (i = 0; i < player_id.length; i += 1) {
+                    if(player_type[i] === 2 && attack_target[i] !== -1 && map[attack_target[i]] === 9) {
+                        attack_target[i] = -1;
+                    }
+                }
+            }
+        }
+
+        return toReturn;
+    }
+
+    function chooseObjective() {
+        var toReturn, i;
+
+        toReturn = objectives[Math.floor(Math.random() * objectives.length)];
+
+        if (toReturn === ENUM_OBJECTIVES.CONQUER_PLAYER) {
+            objective_additional = [];
+            for (i = 0; i < player_id.length; i += 1) {
+                if (i === player_id.length - 1) {
+                    objective_additional[i] = 0;
+                } else {
+                    objective_additional[i] = i + 1;
+                }
+
+                console.info(player_color[i], 'has to eliminate', player_color[objective_additional[i]]);
+            }
+        }
+
+        objective_time = 20000;
+
+        return toReturn;
+    }
+
     function reverseObjective() {
+
+        console.info('');
+        console.info('New Objective chosen');
+        objective_changed = 80;
         var i;
-        if(objective === undefined) {
+        if (objective === undefined) {
             objective = ENUM_OBJECTIVES.CONQUER_ALL;
             objective_restrictions = ENUM_RESTRICTIONS.NONE;
             objective_time = 30000;
         } else {
-            objective = objectives[Math.floor(Math.random() * objectives.length)];
-            objective_restrictions = restrictions[Math.floor(Math.random() * restrictions.length)];
-            objective_time = 30000;
 
-            if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
-                objective_additional = [];
-                for(i = 0; i < player_id.length; i+= 1) {
-                    if(i = player_id.length -1) {
-                        objective_additional.push(0);
-                    } else {
-                        objective_additional.push(i + 1);
-                    }
-                }
-            }
-
-            if (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
-                restriction_additional = [];
-                for(i = 0; i < player_id.length; i+= 1) {
-                    if(i = player_id.length -1) {
-                        restriction_additional.push(0);
-                    } else {
-                        restriction_additional.push(i + 1);
-                    }
-                }
-            }
-
-            if(objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
-                objective_time = 10000;
-            }
-
-            if(objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL || objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
-                objective_time = 15000;
-            }
-
-            if(objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
-                objective_time = 20000;
-            }
+            objective = chooseObjective();
+            objective_restrictions = chooseRestriction();
         }
 
+
+        if(objective === ENUM_OBJECTIVES.CONQUER_ALL) {
+            console.info('New Objective: CONQUER_ALL');
+        } else if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
+            console.info('New Objective: CONQUER_PLAYER');
+        } else if (objective === ENUM_OBJECTIVES.FREE_FOR_ALL) {
+            console.info('New Objective: FREE_FOR_ALL');
+        }
+
+        if(objective_restrictions === ENUM_RESTRICTIONS.NONE) {
+            console.info('New restriction: NONE');
+        } else if (objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL) {
+            console.info('New restriction: NEUTRAL');
+        } else if (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
+            console.info('New restriction: ONE_PLAYER');
+        } else if (objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
+            console.info('New restriction: PEACE');
+        } else if (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
+            console.info('New restriction: PLAYERS');
+        }
+
+        console.info('');
         reverse_timer = setTimeout(reverseObjective, objective_time);
     }
 
@@ -934,7 +1070,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             render();
         }
 
-        if(master) {
+        if (master) {
             check_winningConditions();
         }
 
@@ -1085,10 +1221,10 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
         square = helper_remapPoint(x, y, map_width);
 
-        if((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && (map[square] !== 9 && map[square] !== player)) ||
-          (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[square] === 9) ||
-          (objective_restrictions === ENUM_RESTRICTIONS.PEACE) ||
-          (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && (map[square] !== restriction_additional[player] && map[square] !== player))) {
+        if ((objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL && (map[square] !== 9 && map[square] !== player)) ||
+            (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS && map[square] === 9) ||
+            (objective_restrictions === ENUM_RESTRICTIONS.PEACE) ||
+            (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER && (map[square] !== restriction_additional[player] && map[square] !== player))) {
 
             restrictionBroken();
             return;
@@ -1388,7 +1524,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function listener_mouseup(e) {
-        if(running) {
+        if (running) {
             foreground.removeEventListener('mousemove', listener_mousemove);
             foreground.removeEventListener('mouseout', listener_mouseout);
             if (screen_moved === false) {
@@ -1543,7 +1679,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
     function start() {
         init();
-        if(master) {
+        if (master) {
             reverseObjective();
         }
 
@@ -1788,13 +1924,9 @@ var COMMUNICATION = (function () {
                 "color": color_carousel[document.getElementById('p-' + (i + 1) + '-color' + players).options[document.getElementById('p-' + (i + 1) + '-color' + players).selectedIndex].value],
                 "type": parseInt(document.getElementById('p-' + (i + 1) + '-type' + players).options[document.getElementById('p-' + (i + 1) + '-type' + players).selectedIndex].value),
             });
-
-            console.info(i_players[i].color, i_players[i].type);
         }
 
         map = document.getElementById('map' + players).options[document.getElementById('map' + players).selectedIndex].value
-
-        console.info(map);
 
         if (players === 4) {
             if (map === "random") {

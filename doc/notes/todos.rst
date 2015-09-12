@@ -1,12 +1,20 @@
 Todo:
 
+    /SOBOTA?
+    * Network communication
 
-    //CZWARTEK
-    * visualize winning dialog :D
+    * adding new listeners (touch listener)
+    * Pausing game...
+    * Visualise minion generation
 
-    * winning dialog!
+    * Zoom in/zoom out
+    * animations for changing squares?
+    * animations
+    * music
 
-    //PIĄTEK
+
+Done:
+
     * REVERSING the objective?!
 
         * change the objective after some timeout (60 seconds)
@@ -47,22 +55,8 @@ Todo:
         TODO: Objective indicator
         TODO: Restriction indicator
 
-    /SOBOTA?
-    * Network communication
-
-    * adding new listeners (touch listener)
-    * Pausing game...
-    * Visualise minion generation
-
-    * Zoom in/zoom out
-    * animations for changing squares?
-    * animations
-    * music
-
-
-Done:
-
-
+    * visualize winning dialog :D
+    * winning dialog!
     * first page for the game!
     * remove middleground
     * checking winning conditions? :D
