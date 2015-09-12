@@ -1,24 +1,30 @@
 Todo:
 
 
-    * Choose more randomly players to attack
-    * There is some attack bug???
+    * print why someone won
+
+
+    * Change how manu looks
+    * music
+
+    * Visualise minion generation???
 
     /SOBOTA?
     * Network communication
 
     * adding new listeners (touch listener)
-    * Pausing game...
-    * Visualise minion generation
-
-    * Zoom in/zoom out
     * animations for changing squares?
     * animations
-    * music
+
 
 
 Done:
 
+    * Choose more randomly players to attack
+    * There is some attack bug???
+    * stack trace unfinished with chosing new player...
+    * There is a bug in drawing restriction for ONE_PLAYER
+    * There is a bug for chosing different players
     * React when current_player looses (doesn't have any fields left)
     * REVERSING the objective?!
 
