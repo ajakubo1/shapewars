@@ -8,7 +8,7 @@ ENUM_SUBSQUARE.conquered        1
 ENUM_SUBSQUARE.in_progress      2
 ENUM_SUBSQUARE.healing          3
 ENUM_SUBSQUARE.to_heal          4
-ENUM_SUBSQUARE.base_health      30
+ENUM_SUBSQUARE.base_health      20
 
 ENUM_MINION.current_x           0
 ENUM_MINION.current_y           1
@@ -26,7 +26,7 @@ ENUM_MINION.current_local       13
 ENUM_MINION.current             12
 ENUM_MINION.timer               14
 ENUM_MINION.size                15
-ENUM_MINION.generation_barier   600
+ENUM_MINION.generation_barier   400
 ENUM_MINION.speed               1
 
 ENUM_ORDER.none                 0
@@ -36,3 +36,15 @@ ENUM_ORDER.moving               3
 
 ENUM_GLOBAL.width               680
 ENUM_GLOBAL.height              480
+
+
+ENUM_OBJECTIVES.CONQUER_ALL     0
+ENUM_OBJECTIVES.CONQUER_PLAYER  1
+ENUM_OBJECTIVES.FREE_FOR_ALL    2
+
+ENUM_RESTRICTIONS.NONE          0
+ENUM_RESTRICTIONS.NEUTRAL       1
+ENUM_RESTRICTIONS.PLAYERS       2
+ENUM_RESTRICTIONS.PEACE         3
+ENUM_RESTRICTIONS.ONE_PLAYER    4
+

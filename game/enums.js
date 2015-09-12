@@ -13,7 +13,7 @@ var ENUM_SUBSQUARE = {
     "healing": 3,
     "to_heal": 4,
 
-    "base_health": 30
+    "base_health": 20
 };
 
 var ENUM_MINION = {
@@ -34,7 +34,7 @@ var ENUM_MINION = {
     "timer": 14,
     "size": 15,
 
-    "generation_barier": 600,
+    "generation_barier": 400,
     "speed": 1
 };
 
