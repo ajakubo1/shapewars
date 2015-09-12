@@ -671,7 +671,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
      *********************************************************************/
 
     function ai_attack(player) {
-        if (decision_timer[player] < 500 || objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
+        if (decision_timer[player] < 450 || objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
             decision_timer[player] += 1;
         } else if (player_availableMinions[player] > 0) {
             decision_timer[player] = 0;
@@ -912,6 +912,10 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
             if(objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL || objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
                 objective_time = 15000;
+            }
+
+            if(objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
+                objective_time = 20000;
             }
         }
 
