@@ -1,3 +1,36 @@
+/* Pounding heart animation */
+
+@keyframes pound {
+    50% { transform: scale(1.4); }
+}
+
+.animation {
+    position: absolute;
+    z-index: -1;
+    margin-top: -30px;
+}
+
+.hor {
+    margin-top: 150px;
+    transform: translateY(-50%);
+}
+
+.sqr {
+    width: 75px;
+    height: 75px;
+    display: inline-block;
+    font-size: 90px;
+    color: #e00;
+    animation: pound 1s infinite;
+    transform-origin: center;
+    float: left;
+    opacity: .3;
+    padding: 0px;
+    z-index: -1;
+}
+
+body { text-align: center; }
+
 #b, #f {
     position: fixed;
     z-index: 2;
@@ -16,21 +49,18 @@ body {
 #game, #settings, #settings-4, #settings-2 {
     display: none;
     z-index: 3;
+    width: 470px;
+    float: left;
 }
 
-h1, h4 {
-    width: 400px;
-    text-align: center;
-}
-
-h4 {
+h1 {
+    width: 200px;
     margin-bottom: 10px;
-}
-
-.middle, button{
-    margin-left: 50% !important;
+    margin-left: 50%;
+    text-align: center;
     transform: translateX(-50%);
 }
+
 
 button {
     background-color: white;
@@ -39,49 +69,71 @@ button {
 }
 
 label {
-    width: 70px;
+    float: left;
+    width: 100px;
     margin: 4px;
 }
 
-.value > input, .value, .value > select {
-    width: 90px;
-    float: right;
-}
 
-#registration, #settings {
+
+#r, #settings {
     position: fixed;
     height: 300px;
-    width: 400px;
+    width: 600px;
     padding: 10px;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
     color: white;
+
 }
 
-#end {
-    background: rgba(0, 0, 0, 0.4);
+#mute {
+    background: rgba(0, 0, 0);
     color: white;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-300px, -140px);
+    z-index: 10;
 }
 
-.player {
-    width: 180px;
-    float: left;
+.v > input, .v, .v > select {
+    float: right;
+    width: 300px;
+}
+
+.p {
+    clear: both;
+    z-index: 10px;
+}
+
+.p, #register {
     margin: 10px;
-
 }
 
-.player input, .player select:not([class*=color]), button {
+#play {
+    float: right;
+    width: 100px;
+    margin-top: 100px;
+}
+
+#register {
+    width: 100px;
+    z-index: 10;
+}
+
+.p input, .p select:not([class*=cs]), button {
     background-color: black;
     color: white;
     margin: 4px;
 }
 
-.player select:disabled, .player input:disabled {
+.p select:disabled, .p input:disabled {
     color: darkgray;
 }
 
-.color-square {
+.cs {
     width: 30px;
     height: 30px;
 }

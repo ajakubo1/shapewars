@@ -2,9 +2,10 @@ Todo:
 
 
 
-    * Add description
-    * Change how manu looks
+
+    * Change how menu looks
     * music
+    * toggle music?
 
     * Visualise minion generation???
 
@@ -19,6 +20,8 @@ Todo:
 
 Done:
 
+    * Add description
+    * Added pictures to load
     * print why someone won
     * Choose more randomly players to attack
     * There is some attack bug???

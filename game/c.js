@@ -664,6 +664,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         foreground_ctx.textAlign = "start";
         foreground_ctx.fillText("OBJECTIVE REVERSAL IN " + Math.round(objective_time / 1000), 10, ENUM_GLOBAL.height - 10);
 
+        foreground_ctx.fillText("MUSIC ON/OFF", 10, 20);
+
         foreground_ctx.textAlign = "end";
         if (objective_restrictions === ENUM_RESTRICTIONS.NONE) {
             foreground_ctx.fillText("NO RESTRICTIONS", ENUM_GLOBAL.width - 10, 20);
@@ -687,7 +689,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         foreground_ctx.drawImage(generate_minionStatSquare(0, 0, ENUM_GLOBAL.width, ENUM_GLOBAL.height, "black", "black", 0.5), 0, 0);
         foreground_ctx.textAlign = "center";
         foreground_ctx.fillStyle = "red";
-            foreground_ctx.font = "80px monospace";
+        foreground_ctx.font = "80px monospace";
         foreground_ctx.fillText("YOU HAVE LOST...", ENUM_GLOBAL.width / 2, ENUM_GLOBAL.height / 2 + 40);
         foreground_ctx.font = "30px monospace";
         foreground_ctx.fillStyle = "white";
@@ -918,7 +920,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
     function playerHasSquares(player) {
         var i;
-        for(i = 0; i < map.length; i += 1) {
+        for (i = 0; i < map.length; i += 1) {
             if (map[i] === player) {
                 return true;
             }
@@ -928,7 +930,9 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function countEmpty() {
-        var taken = 0, empty = 0, i;
+        var taken = 0,
+            empty = 0,
+            i;
 
         for (i = 0; i < map.length; i += 1) {
             if (map[i] !== 8) {
@@ -952,12 +956,10 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         }
 
         if (toReturn === ENUM_RESTRICTIONS.NEUTRAL && countEmpty() < player_name.length) {
-            console.info('chosen neutral, choose another restriction');
             toReturn = randomRestriction();
         }
 
         if ((toReturn === ENUM_RESTRICTIONS.PLAYERS || toReturn === ENUM_RESTRICTIONS.ONE_PLAYER) && countEmpty() > player_name.length) {
-            console.info('chosen PLAYERS or ONE_PLAYER, choose another restriction');
             toReturn = randomRestriction();
         }
         return toReturn;
@@ -965,13 +967,13 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
     function getRandomUnselectedPlayer(player, side) {
         var toReturn;
-        if(side) {
+        if (side) {
             toReturn = (player + 1) % player_name.length;
         } else {
             toReturn = (player - 1 + player_name.length) % player_name.length;
         }
-        if(!playerHasSquares(toReturn)) {
-            if(side) {
+        if (!playerHasSquares(toReturn)) {
+            if (side) {
                 toReturn = getRandomUnselectedPlayer(player + 1, side);
             } else {
                 toReturn = getRandomUnselectedPlayer(player - 1, side);
@@ -981,7 +983,8 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function isEveryoneDead() {
-        var dead = 0, i;
+        var dead = 0,
+            i;
 
         for (i = 0; i < player_name.length; i += 1) {
             if (player_dead[i] === 1) {
@@ -989,7 +992,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             }
         }
 
-        if(dead === player_name.length - 1) {
+        if (dead === player_name.length - 1) {
             return true;
         } else {
             return false;
@@ -1004,17 +1007,16 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             toReturn = ENUM_RESTRICTIONS.ONE_PLAYER;
         }
 
-        if(toReturn === objective_restrictions) {
+        if (toReturn === objective_restrictions) {
             toReturn = chooseRestriction();
         }
 
         if (toReturn === ENUM_RESTRICTIONS.ONE_PLAYER) {
-            if(isEveryoneDead()) {
+            if (isEveryoneDead()) {
                 toReturn = chooseRestriction();
             } else {
                 if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
                     restriction_additional = objective_additional;
-                    console.info('Restrictions same as objectives');
                 } else {
                     restriction_additional = [];
                     side = Math.random() < 0.5 ? true : false;
@@ -1022,7 +1024,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                         if (playerHasSquares(i)) {
                             restriction_additional[i] = getRandomUnselectedPlayer(i, side);
                         }
-                        console.info(player_color[i], 'can only attack', player_color[restriction_additional[i]]);
                     }
                 }
             }
@@ -1080,7 +1081,7 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
     function randomObjective() {
         var toReturn = objectives[Math.floor(Math.random() * objectives.length)];
-        if(toReturn === ENUM_OBJECTIVES.CONQUER_PLAYER && isEveryoneDead()) {
+        if (toReturn === ENUM_OBJECTIVES.CONQUER_PLAYER && isEveryoneDead()) {
             toReturn = randomObjective();
         }
 
@@ -1099,7 +1100,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
                 if (playerHasSquares(i)) {
                     objective_additional[i] = getRandomUnselectedPlayer(i, side);
                 }
-                console.info(player_color[i], 'has to eliminate', player_color[objective_additional[i]]);
             }
         }
 
@@ -1109,9 +1109,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function reverseObjective() {
-
-        console.info('');
-        console.info('New Objective chosen');
         objective_changed = 80;
         var i;
         if (objective === undefined) {
@@ -1122,29 +1119,29 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
             objective = chooseObjective();
             objective_restrictions = chooseRestriction();
         }
+        /*
 
+                if (objective === ENUM_OBJECTIVES.CONQUER_ALL) {
+                    console.info('New Objective: CONQUER_ALL');
+                } else if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
+                    console.info('New Objective: CONQUER_PLAYER');
+                } else if (objective === ENUM_OBJECTIVES.FREE_FOR_ALL) {
+                    console.info('New Objective: FREE_FOR_ALL');
+                }
 
-        if (objective === ENUM_OBJECTIVES.CONQUER_ALL) {
-            console.info('New Objective: CONQUER_ALL');
-        } else if (objective === ENUM_OBJECTIVES.CONQUER_PLAYER) {
-            console.info('New Objective: CONQUER_PLAYER');
-        } else if (objective === ENUM_OBJECTIVES.FREE_FOR_ALL) {
-            console.info('New Objective: FREE_FOR_ALL');
-        }
+                if (objective_restrictions === ENUM_RESTRICTIONS.NONE) {
+                    console.info('New restriction: NONE');
+                } else if (objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL) {
+                    console.info('New restriction: NEUTRAL');
+                } else if (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
+                    console.info('New restriction: ONE_PLAYER');
+                } else if (objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
+                    console.info('New restriction: PEACE');
+                } else if (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
+                    console.info('New restriction: PLAYERS');
+                }
 
-        if (objective_restrictions === ENUM_RESTRICTIONS.NONE) {
-            console.info('New restriction: NONE');
-        } else if (objective_restrictions === ENUM_RESTRICTIONS.NEUTRAL) {
-            console.info('New restriction: NEUTRAL');
-        } else if (objective_restrictions === ENUM_RESTRICTIONS.ONE_PLAYER) {
-            console.info('New restriction: ONE_PLAYER');
-        } else if (objective_restrictions === ENUM_RESTRICTIONS.PEACE) {
-            console.info('New restriction: PEACE');
-        } else if (objective_restrictions === ENUM_RESTRICTIONS.PLAYERS) {
-            console.info('New restriction: PLAYERS');
-        }
-
-        console.info('');
+                console.info('');*/
         reverse_timer = setTimeout(reverseObjective, objective_time);
     }
 
@@ -1566,31 +1563,32 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
         } else if (code === 39 || code === 68) {
             current_x += step_x;
             moved = true;
-        } /*else if (code === 107) {
-            if (zoom > zoom_limit_in) {
-                zoom -= 1;
-                background_square_width *= 2;
-                background_square_height *= 2;
-                screen_width /= 2;
-                screen_height /= 2;
-                current_x *= 2;
-                current_y *= 2;
-                recountGlobals();
-                redrawBackground();
-            }
-        } else if (code === 109) {
-            if (zoom < zoom_limit_out) {
-                zoom += 1;
-                background_square_width /= 2;
-                background_square_height /= 2;
-                screen_width *= 2;
-                screen_height *= 2;
-                current_x /= 2;
-                current_y /= 2;
-                recountGlobals();
-                redrawBackground();
-            }
-        }*/
+        }
+        /*else if (code === 107) {
+                   if (zoom > zoom_limit_in) {
+                       zoom -= 1;
+                       background_square_width *= 2;
+                       background_square_height *= 2;
+                       screen_width /= 2;
+                       screen_height /= 2;
+                       current_x *= 2;
+                       current_y *= 2;
+                       recountGlobals();
+                       redrawBackground();
+                   }
+               } else if (code === 109) {
+                   if (zoom < zoom_limit_out) {
+                       zoom += 1;
+                       background_square_width /= 2;
+                       background_square_height /= 2;
+                       screen_width *= 2;
+                       screen_height *= 2;
+                       current_x /= 2;
+                       current_y /= 2;
+                       recountGlobals();
+                       redrawBackground();
+                   }
+               }*/
 
         if (moved) {
             helper_guardBorders();
@@ -1614,23 +1612,32 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
     }
 
     function listener_mouseup(e) {
-        if (running && player_dead[current_player] === 0) {
+
+        if (e.offsetX < 100 && e.offsetY < 30) {
+            MUSIC.toggle();
             foreground.removeEventListener('mousemove', listener_mousemove);
             foreground.removeEventListener('mouseout', listener_mouseout);
-            if (screen_moved === false) {
-                var x = e.offsetX + current_x - offset_x,
-                    y = e.offsetY + current_y - offset_y,
-                    range;
-                if (x > 0 && y > 0 && x <= background_square_width * map_width && y <= background_square_height * map_height) {
-                    order_decision(current_player, Math.floor(x / background_square_width), Math.floor(y / background_square_height));
+            screen_moved = false;
+        } else {
+            if (running && player_dead[current_player] === 0) {
+                foreground.removeEventListener('mousemove', listener_mousemove);
+                foreground.removeEventListener('mouseout', listener_mouseout);
+                if (screen_moved === false) {
+                    var x = e.offsetX + current_x - offset_x,
+                        y = e.offsetY + current_y - offset_y,
+                        range;
+                    if (x > 0 && y > 0 && x <= background_square_width * map_width && y <= background_square_height * map_height) {
+                        order_decision(current_player, Math.floor(x / background_square_width), Math.floor(y / background_square_height));
+                    }
+                } else {
+                    screen_moved = false;
                 }
             } else {
-                screen_moved = false;
+                foreground.removeEventListener('mouseup', listener_mouseup);
+                document.getElementById('game').style.display = "none";
+                document.getElementById('r').style.display = "block";
+                document.getElementById('mute').style.display = "block";
             }
-        } else {
-            foreground.removeEventListener('mouseup', listener_mouseup);
-            document.getElementById('game').style.display = "none";
-            document.getElementById('registration').style.display = "block";
         }
     }
 
@@ -1804,14 +1811,6 @@ var SHAPEWARS = function (document, window, config_map, config_types, config_pla
 
 
 var two_players = {
-        "testing": {
-            "map": [
-            [0, 9, 1]
-        ],
-            "types": [
-            [5, 1, 1]
-        ]
-        },
         "snake": {
             "map": [
             [0, 8, 8, 8, 8, ],
@@ -1888,7 +1887,7 @@ var four_players = {
 var COMMUNICATION = (function () {
     var socket = io(document.location.href),
         log = document.getElementById('log'),
-        registration = document.getElementById('registration'),
+        registration = document.getElementById('r'),
         register_button = document.getElementById('register'),
         settings = document.getElementById('settings'),
         settings_2 = document.getElementById('settings-2'),
@@ -1935,7 +1934,6 @@ var COMMUNICATION = (function () {
         if (mode === 0) {
 
             for (i = 0; i < players; i += 1) {
-
                 document.getElementById('p-' + (i + 1) + '-type' + players).disabled = true;
                 if (data[i].type === 2) {
                     document.getElementById('p-' + (i + 1) + '-type' + players).getElementsByTagName('option')[1].selected = 'selected';
@@ -1944,7 +1942,7 @@ var COMMUNICATION = (function () {
                 }
                 document.getElementById('p-' + (i + 1) + '-name' + players).disabled = true;
                 document.getElementById('p-' + (i + 1) + '-name' + players).value = data[i].name;
-                selectColor(document.getElementById('p-' + (i + 1) + '-color' + players), 'color-square ' + data[i].color);
+                selectColor(document.getElementById('p-' + (i + 1) + '-color' + players), "cs " + data[i].color);
                 document.getElementById('p-' + (i + 1) + '-color' + players).getElementsByClassName(data[i].color)[0].selected = 'selected'
                 disableColor(data[i].color);
 
@@ -2004,6 +2002,7 @@ var COMMUNICATION = (function () {
         settings_4.style.display = "none";
         settings_2.style.display = "none";
         game.style.display = "block";
+        document.getElementById('mute').style.display = "none";
 
         for (i = 0; i < players; i += 1) {
             i_players.push({
@@ -2095,6 +2094,10 @@ var COMMUNICATION = (function () {
         disableColor(this.className);
     }
 
+    function muteMusic(event) {
+        MUSIC.toggle();
+    }
+
     register_button.addEventListener('click', register);
     play_button.addEventListener('click', play);
     document.getElementById('p-1-color4').addEventListener('change', boxChanged);
@@ -2103,4 +2106,183 @@ var COMMUNICATION = (function () {
     document.getElementById('p-4-color4').addEventListener('change', boxChanged);
     document.getElementById('p-1-color2').addEventListener('change', boxChanged);
     document.getElementById('p-2-color2').addEventListener('change', boxChanged);
+
+    document.getElementById('mute').addEventListener('click', muteMusic);
 })();
+
+
+var SOUNDS = function () {
+    // create the audio context
+    var ac = typeof AudioContext !== 'undefined' ? new AudioContext : new webkitAudioContext,
+        // get the current Web Audio timestamp (this is when playback should begin)
+        when = ac.currentTime,
+        // set the tempo
+        tempo = 160,
+        // initialize some vars
+        sequence1,
+        sequence2,
+        sequence3,
+        on = false,
+        // create an array of "note strings" that can be passed to a sequence
+        lead = [
+    'F2  e',
+    'F2  e',
+    '-  q',
+
+    'A2  e',
+    'A2  e',
+    '-  q',
+
+    'E2  e',
+    'E2  e',
+    '-  q',
+
+    'G2  e',
+    'G2  e',
+    '-  q',
+
+    'F2  e',
+    '-  e',
+    'C2  e',
+    '-  e',
+
+    'A2  e',
+    '-  e',
+    'F2  e',
+    '- e',
+
+    'E2  e',
+    '-  e',
+    'C2  e',
+    '- e',
+
+    'G2  e',
+    '-  e',
+    'A2  e',
+    '-  e',
+  ],
+        harmony = [
+
+        'F5   e',
+        'A5  e',
+        'D5   e',
+        'D5  e',
+
+        '-   e',
+        'A5  e',
+        '-   e',
+        'Bb5  e',
+
+        '-   e',
+        'A5  e',
+        '-   e',
+        'F5 e',
+
+        'Bb4   e',
+        'A5  e',
+        'C5   e',
+        'Bb5  e',
+
+        'F5   e',
+        'A5  e',
+        'D5   e',
+        'D5  e',
+
+        '-   e',
+        'A5  e',
+        '-   e',
+        'Bb5  e',
+
+        '-   e',
+        'A5  e',
+        '-   e',
+        'F5 e',
+
+        'D5   e',
+        'A5  e',
+        'C5   e',
+        'Bb5  e',
+  ],
+        bass = [
+        '-  q',
+        'Bb2  q',
+        'A2  q',
+        '-   q',
+        'E2  q',
+        '-   q',
+        'G2  h',
+        'F2  q',
+        '-   q',
+        'A2  q',
+        '-   q',
+        'E2  q',
+        '-   q',
+        'G2  h',
+  ];
+
+    // create 3 new sequences (one for lead, one for harmony, one for bass)
+    sequence1 = new Sequence(ac, tempo, lead);
+    sequence2 = new Sequence(ac, tempo, harmony);
+    sequence3 = new Sequence(ac, tempo, bass);
+
+    // set staccato and smoothing values for maximum coolness
+    sequence1.staccato = 0.55;
+    sequence2.staccato = 0.55;
+    sequence3.staccato = 0.05;
+    sequence3.smoothing = 0.4;
+
+    // adjust the levels so the bass and harmony aren't too loud
+    sequence1.gain.gain.value = 0.1 / 6;
+    sequence2.gain.gain.value = 0.04 / 6;
+    sequence3.gain.gain.value = 0.06 / 6;
+
+    // apply EQ settings
+    sequence1.mid.frequency.value = 800;
+    sequence1.mid.gain.value = 3;
+    sequence2.mid.frequency.value = 1200;
+    sequence3.mid.gain.value = 3;
+    sequence3.bass.gain.value = 6;
+    sequence3.bass.frequency.value = 80;
+    sequence3.mid.gain.value = -6;
+    sequence3.mid.frequency.value = 500;
+    sequence3.treble.gain.value = -2;
+    sequence3.treble.frequency.value = 1400;
+
+    function playMusic() {
+        on = true;
+        when = ac.currentTime;
+        //start the lead part immediately
+        sequence1.play(when);
+        // delay the harmony by 16 beats
+        sequence2.play(when + (60 / tempo) * 32);
+        // start the bass part immediately
+        sequence3.play(when + (60 / tempo) * 16);
+        //sequence3.play(when);
+    }
+
+    function stopMusic() {
+        on = false;
+        sequence1.stop();
+        sequence2.stop();
+        sequence3.stop();
+    }
+
+    return {
+        "start_music": function () {
+            playMusic();
+        },
+        "stop_music": function () {
+            stopMusic();
+        },
+        "toggle": function () {
+            if (on) {
+                stopMusic();
+            } else {
+                playMusic();
+            }
+        },
+    }
+}
+
+var MUSIC = new SOUNDS();
+MUSIC.start_music();
